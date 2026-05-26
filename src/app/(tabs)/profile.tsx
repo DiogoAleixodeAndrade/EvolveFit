@@ -1,0 +1,240 @@
+import { LinearGradient } from "expo-linear-gradient";
+import { Award, Calendar, Flame, Shield, Trophy, User, Zap } from "lucide-react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { GameCard } from "../../components/GameCard";
+import { ProgressBar } from "../../components/ProgressBar";
+import { colors } from "../../constants/theme";
+
+export default function ProfileScreen() {
+  return (
+    <LinearGradient colors={["#050816", "#0B1026", "#111C44"]} style={styles.container}>
+      <ScrollView contentContainerStyle={styles.content}>
+        <View>
+          <Text style={styles.title}>Perfil</Text>
+          <Text style={styles.subtitle}>Status do seu personagem fitness.</Text>
+        </View>
+
+        <GameCard>
+          <View style={styles.profileHeader}>
+            <View style={styles.avatar}>
+              <User color={colors.secondary} size={38} />
+            </View>
+
+            <View style={{ flex: 1 }}>
+              <Text style={styles.name}>Caçador</Text>
+              <Text style={styles.class}>Classe: Guerreiro em Evolução</Text>
+              <Text style={styles.rank}>E-RANK · LEVEL 1</Text>
+            </View>
+          </View>
+
+          <View style={styles.xpBox}>
+            <View style={styles.rowBetween}>
+              <Text style={styles.label}>XP do nível</Text>
+              <Text style={styles.value}>120 / 500</Text>
+            </View>
+
+            <ProgressBar progress={24} />
+          </View>
+        </GameCard>
+
+        <View style={styles.grid}>
+          <View style={styles.gridItem}>
+            <GameCard>
+              <Zap color={colors.secondary} size={24} />
+              <Text style={styles.statValue}>120</Text>
+              <Text style={styles.statLabel}>XP total</Text>
+            </GameCard>
+          </View>
+
+          <View style={styles.gridItem}>
+            <GameCard>
+              <Flame color={colors.warning} size={24} />
+              <Text style={styles.statValue}>0</Text>
+              <Text style={styles.statLabel}>Streak</Text>
+            </GameCard>
+          </View>
+
+          <View style={styles.gridItem}>
+            <GameCard>
+              <Trophy color={colors.success} size={24} />
+              <Text style={styles.statValue}>3</Text>
+              <Text style={styles.statLabel}>Missões</Text>
+            </GameCard>
+          </View>
+
+          <View style={styles.gridItem}>
+            <GameCard>
+              <Shield color={colors.primary} size={24} />
+              <Text style={styles.statValue}>E</Text>
+              <Text style={styles.statLabel}>Rank</Text>
+            </GameCard>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Atributos</Text>
+
+          <Attribute name="Força" value={35} />
+          <Attribute name="Resistência" value={28} />
+          <Attribute name="Disciplina" value={42} />
+          <Attribute name="Nutrição" value={30} />
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Conquistas</Text>
+
+          <Achievement icon={<Award color={colors.secondary} size={22} />} title="Primeiro passo" description="Criou seu personagem fitness." />
+          <Achievement icon={<Calendar color={colors.secondary} size={22} />} title="Rotina iniciada" description="Sistema de evolução ativado." />
+        </View>
+      </ScrollView>
+    </LinearGradient>
+  );
+}
+
+function Attribute({ name, value }: { name: string; value: number }) {
+  return (
+    <GameCard>
+      <View style={styles.rowBetween}>
+        <Text style={styles.attributeName}>{name}</Text>
+        <Text style={styles.value}>{value}/100</Text>
+      </View>
+
+      <ProgressBar progress={value} />
+    </GameCard>
+  );
+}
+
+function Achievement({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) {
+  return (
+    <GameCard>
+      <View style={styles.achievement}>
+        {icon}
+
+        <View style={{ flex: 1 }}>
+          <Text style={styles.achievementTitle}>{title}</Text>
+          <Text style={styles.achievementDescription}>{description}</Text>
+        </View>
+      </View>
+    </GameCard>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  content: {
+    padding: 20,
+    paddingTop: 60,
+    paddingBottom: 40,
+    gap: 16,
+  },
+  title: {
+    color: colors.text,
+    fontSize: 32,
+    fontWeight: "900",
+  },
+  subtitle: {
+    color: colors.textMuted,
+    marginTop: 8,
+  },
+  profileHeader: {
+    flexDirection: "row",
+    gap: 16,
+    alignItems: "center",
+  },
+  avatar: {
+    width: 72,
+    height: 72,
+    borderRadius: 24,
+    backgroundColor: "rgba(0,229,255,0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(0,229,255,0.35)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  name: {
+    color: colors.text,
+    fontSize: 22,
+    fontWeight: "900",
+  },
+  class: {
+    color: colors.textMuted,
+    marginTop: 4,
+  },
+  rank: {
+    color: colors.secondary,
+    marginTop: 6,
+    fontWeight: "900",
+  },
+  xpBox: {
+    marginTop: 20,
+    gap: 10,
+  },
+  rowBetween: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  label: {
+    color: colors.textMuted,
+    fontWeight: "700",
+  },
+  value: {
+    color: colors.text,
+    fontWeight: "900",
+  },
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+  },
+  gridItem: {
+    width: "48%",
+  },
+  statValue: {
+    color: colors.text,
+    fontSize: 24,
+    fontWeight: "900",
+    marginTop: 10,
+  },
+  statLabel: {
+    color: colors.textMuted,
+    marginTop: 4,
+  },
+  section: {
+    gap: 10,
+  },
+  sectionTitle: {
+    color: colors.text,
+    fontSize: 20,
+    fontWeight: "900",
+    marginBottom: 4,
+  },
+  attributeName: {
+    color: colors.text,
+    fontWeight: "900",
+    marginBottom: 12,
+  },
+  achievement: {
+    flexDirection: "row",
+    gap: 14,
+  },
+  achievementTitle: {
+    color: colors.text,
+    fontWeight: "900",
+    fontSize: 16,
+  },
+  achievementDescription: {
+    color: colors.textMuted,
+    marginTop: 4,
+  },
+});

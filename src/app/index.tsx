@@ -1,98 +1,166 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
+import { Activity, Flame, Shield, Swords } from "lucide-react-native";
+import { Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
+import { colors } from "../constants/theme";
 
 export default function HomeScreen() {
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+    <LinearGradient colors={["#050816", "#0B1026", "#111C44"]} style={styles.container}>
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.header}>
+          <Text style={styles.logo}>EVOLVEFIT</Text>
+          <Text style={styles.subtitle}>Seu sistema fitness de evolução pessoal</Text>
+        </View>
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
+        <View style={styles.rankCard}>
+          <Text style={styles.rankLabel}>RANK ATUAL</Text>
+          <Text style={styles.rank}>E-RANK</Text>
+          <Text style={styles.rankDescription}>
+            Complete missões diárias, evolua seu corpo e desbloqueie novos níveis.
+          </Text>
+        </View>
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+        <View style={styles.statsGrid}>
+          <View style={styles.statCard}>
+            <Flame color={colors.warning} size={26} />
+            <Text style={styles.statNumber}>0</Text>
+            <Text style={styles.statLabel}>Streak</Text>
+          </View>
 
-        {Platform.OS === 'web' && <WebBadge />}
+          <View style={styles.statCard}>
+            <Swords color={colors.secondary} size={26} />
+            <Text style={styles.statNumber}>Lv. 1</Text>
+            <Text style={styles.statLabel}>Nível</Text>
+          </View>
+
+          <View style={styles.statCard}>
+            <Shield color={colors.success} size={26} />
+            <Text style={styles.statNumber}>0 XP</Text>
+            <Text style={styles.statLabel}>Experiência</Text>
+          </View>
+
+          <View style={styles.statCard}>
+            <Activity color={colors.primary} size={26} />
+            <Text style={styles.statNumber}>3</Text>
+            <Text style={styles.statLabel}>Missões</Text>
+          </View>
+        </View>
+
+        <View style={styles.missionBox}>
+          <Text style={styles.sectionTitle}>Missões de hoje</Text>
+          <Text style={styles.mission}>☐ Registrar primeira refeição</Text>
+          <Text style={styles.mission}>☐ Beber meta de água</Text>
+          <Text style={styles.mission}>☐ Completar treino do dia</Text>
+        </View>
+
+        <Pressable style={styles.button} onPress={() => router.push("/onboarding")}>
+          <Text style={styles.buttonText}>COMEÇAR EVOLUÇÃO</Text>
+        </Pressable>
       </SafeAreaView>
-    </ThemedView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
   },
-  safeArea: {
+  safe: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
+    padding: 20,
+    justifyContent: "space-between",
   },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+  header: {
+    marginTop: 24,
   },
-  title: {
-    textAlign: 'center',
+  logo: {
+    color: colors.text,
+    fontSize: 34,
+    fontWeight: "900",
+    letterSpacing: 3,
   },
-  code: {
-    textTransform: 'uppercase',
+  subtitle: {
+    color: colors.textMuted,
+    marginTop: 8,
+    fontSize: 15,
   },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+  rankCard: {
+    backgroundColor: "rgba(108, 99, 255, 0.16)",
+    borderWidth: 1,
+    borderColor: "rgba(0, 229, 255, 0.35)",
+    borderRadius: 28,
+    padding: 24,
+  },
+  rankLabel: {
+    color: colors.secondary,
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 2,
+  },
+  rank: {
+    color: colors.text,
+    fontSize: 46,
+    fontWeight: "900",
+    marginTop: 10,
+  },
+  rankDescription: {
+    color: colors.textMuted,
+    fontSize: 14,
+    lineHeight: 22,
+    marginTop: 8,
+  },
+  statsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+  },
+  statCard: {
+    width: "48%",
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderRadius: 22,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.09)",
+  },
+  statNumber: {
+    color: colors.text,
+    fontSize: 20,
+    fontWeight: "900",
+    marginTop: 10,
+  },
+  statLabel: {
+    color: colors.textMuted,
+    marginTop: 4,
+  },
+  missionBox: {
+    backgroundColor: colors.surface,
+    borderRadius: 24,
+    padding: 18,
+  },
+  sectionTitle: {
+    color: colors.text,
+    fontSize: 18,
+    fontWeight: "800",
+    marginBottom: 12,
+  },
+  mission: {
+    color: colors.textMuted,
+    fontSize: 15,
+    marginBottom: 8,
+  },
+  button: {
+    backgroundColor: colors.primary,
+    borderRadius: 18,
+    paddingVertical: 18,
+    alignItems: "center",
+    shadowColor: colors.primary,
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+  },
+  buttonText: {
+    color: colors.text,
+    fontWeight: "900",
+    letterSpacing: 1,
   },
 });
