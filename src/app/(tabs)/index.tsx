@@ -10,6 +10,7 @@ import { getXPByAction } from "../../services/fitnessCalculations";
 import { getHunterRank, getRankColor } from "../../services/rankSystem";
 import Animated, {
   FadeInDown,
+  FadeInRight,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
@@ -74,38 +75,46 @@ const glowStyle = useAnimatedStyle(() => ({
 </Animated.View>
 
         <View style={styles.grid}>
-          {playerStats.map((stat) => {
-            const Icon = stat.icon;
-            const value =
-  stat.id === "xp"
-    ? String(totalXP)
-    : stat.id === "level"
-      ? String(level)
-      : stat.id === "missions"
-        ? String(missions.filter((mission) => mission.completed).length)
-        : stat.id === "streak"
-          ? String(currentStreak)
-          : stat.id === "rank"
-            ? hunterRank
-            : stat.value;
+  {playerStats.map((stat, index) => {
+    const Icon = stat.icon;
+    const value =
+      stat.id === "xp"
+        ? String(totalXP)
+        : stat.id === "level"
+          ? String(level)
+          : stat.id === "missions"
+            ? String(missions.filter((mission) => mission.completed).length)
+            : stat.id === "streak"
+              ? String(currentStreak)
+              : stat.id === "rank"
+                ? hunterRank
+                : stat.value;
 
-            return (
-              <View key={stat.id} style={styles.gridItem}>
-                <GameCard>
-                  <Icon color={stat.iconColor} size={24} />
-                  <Text style={styles.statValue}>{value}</Text>
-                  <Text style={styles.statLabel}>{stat.label}</Text>
-                </GameCard>
-              </View>
-            );
-          })}
-        </View>
+    return (
+      <Animated.View
+        key={stat.id}
+        entering={FadeInRight.delay(index * 120).duration(500)}
+        style={styles.gridItem}
+      >
+        <GameCard>
+          <Icon color={stat.iconColor} size={24} />
+          <Text style={styles.statValue}>{value}</Text>
+          <Text style={styles.statLabel}>{stat.label}</Text>
+        </GameCard>
+      </Animated.View>
+    );
+  })}
+</View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Missões diárias</Text>
 
-          {missions.map((mission) => (
-            <Pressable key={mission.id} onPress={() => completeMission(mission.id)}>
+          {missions.map((mission, index) => (
+            <Animated.View
+  key={mission.id}
+  entering={FadeInDown.delay(index * 100).duration(500)}
+>
+  <Pressable onPress={() => completeMission(mission.id)}>
               <MissionCard
                 icon={
                   <Text style={[styles.missionIcon, mission.completed && styles.missionIconDone]}>
@@ -116,6 +125,7 @@ const glowStyle = useAnimatedStyle(() => ({
                 xp={`+${getXPByAction(mission.xpAction)} XP`}
               />
             </Pressable>
+            </Animated.View>
           ))}
         </View>
 
