@@ -1,12 +1,13 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { Bot, Clock, Flame, Footprints, Gauge, Map, Trophy } from "lucide-react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { GameCard } from "../../components/GameCard";
 import { ProgressBar } from "../../components/ProgressBar";
 import { colors } from "../../constants/theme";
 import { useUserProfile } from "../../context/UserProfileContext";
 import { generateAIPlan } from "../../services/ai";
+import { fetchLatestAIPlan, saveAIPlan } from "../../services/aiPlanService";
 import { calculateRunningCaloriesByDistance } from "../../services/fitnessCalculations";
 import { AIPlanResponse } from "../../types/ai";
 
@@ -38,6 +39,7 @@ export default function RunningScreen() {
   const { profile } = useUserProfile();
   const [aiPlan, setAiPlan] = useState<AIPlanResponse | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isLoadingPlan, setIsLoadingPlan] = useState(true);
 
   const weeklyDistanceKm = 12;
 
@@ -46,22 +48,44 @@ export default function RunningScreen() {
     weeklyDistanceKm
   );
 
+  async function loadLatestPlan() {
+    try {
+      setIsLoadingPlan(true);
+      const latestPlan = await fetchLatestAIPlan("running");
+      setAiPlan(latestPlan);
+    } catch (error) {
+      console.log("Erro ao carregar plano de corrida:", error);
+    } finally {
+      setIsLoadingPlan(false);
+    }
+  }
+
   async function handleGeneratePlan() {
     setIsGenerating(true);
 
-    const plan = await generateAIPlan({
-      type: "running",
-      name: profile.name,
-      age: profile.age,
-      heightCm: profile.heightCm,
-      weightKg: profile.weightKg,
-      goal: profile.goal,
-      trainingLevel: profile.trainingLevel,
-    });
+    try {
+      const plan = await generateAIPlan({
+        type: "running",
+        name: profile.name,
+        age: profile.age,
+        heightCm: profile.heightCm,
+        weightKg: profile.weightKg,
+        goal: profile.goal,
+        trainingLevel: profile.trainingLevel,
+      });
 
-    setAiPlan(plan);
-    setIsGenerating(false);
+      setAiPlan(plan);
+      await saveAIPlan("running", plan);
+    } catch (error) {
+      console.log("Erro ao gerar plano de corrida:", error);
+    } finally {
+      setIsGenerating(false);
+    }
   }
+
+  useEffect(() => {
+    loadLatestPlan();
+  }, []);
 
   return (
     <LinearGradient colors={["#050816", "#0B1026", "#111C44"]} style={styles.container}>
@@ -98,7 +122,14 @@ export default function RunningScreen() {
           </Pressable>
         </GameCard>
 
-        {aiPlan && (
+        {isLoadingPlan && (
+          <GameCard>
+            <ActivityIndicator color={colors.secondary} />
+            <Text style={styles.loadingPlanText}>Carregando último plano...</Text>
+          </GameCard>
+        )}
+
+        {!isLoadingPlan && aiPlan && (
           <GameCard>
             <Text style={styles.aiTitle}>{aiPlan.title}</Text>
             <Text style={styles.text}>{aiPlan.summary}</Text>
@@ -240,6 +271,12 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontWeight: "900",
     letterSpacing: 0.5,
+  },
+  loadingPlanText: {
+    color: colors.textMuted,
+    textAlign: "center",
+    marginTop: 10,
+    fontWeight: "700",
   },
   aiTitle: {
     color: colors.text,

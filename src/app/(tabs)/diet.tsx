@@ -1,12 +1,13 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { Bot, Droplets, Flame, Plus, Utensils, Wheat } from "lucide-react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { GameCard } from "../../components/GameCard";
 import { ProgressBar } from "../../components/ProgressBar";
 import { colors } from "../../constants/theme";
 import { useUserProfile } from "../../context/UserProfileContext";
 import { generateAIPlan } from "../../services/ai";
+import { fetchLatestAIPlan, saveAIPlan } from "../../services/aiPlanService";
 import { calculateDailyTargets } from "../../services/fitnessCalculations";
 import { AIPlanResponse } from "../../types/ai";
 
@@ -35,6 +36,7 @@ export default function DietScreen() {
   const { profile } = useUserProfile();
   const [aiPlan, setAiPlan] = useState<AIPlanResponse | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isLoadingPlan, setIsLoadingPlan] = useState(true);
 
   const targets = calculateDailyTargets(
     profile.weightKg,
@@ -43,22 +45,44 @@ export default function DietScreen() {
     profile.goal
   );
 
+  async function loadLatestPlan() {
+    try {
+      setIsLoadingPlan(true);
+      const latestPlan = await fetchLatestAIPlan("nutrition");
+      setAiPlan(latestPlan);
+    } catch (error) {
+      console.log("Erro ao carregar plano alimentar:", error);
+    } finally {
+      setIsLoadingPlan(false);
+    }
+  }
+
   async function handleGeneratePlan() {
     setIsGenerating(true);
 
-    const plan = await generateAIPlan({
-      type: "nutrition",
-      name: profile.name,
-      age: profile.age,
-      heightCm: profile.heightCm,
-      weightKg: profile.weightKg,
-      goal: profile.goal,
-      trainingLevel: profile.trainingLevel,
-    });
+    try {
+      const plan = await generateAIPlan({
+        type: "nutrition",
+        name: profile.name,
+        age: profile.age,
+        heightCm: profile.heightCm,
+        weightKg: profile.weightKg,
+        goal: profile.goal,
+        trainingLevel: profile.trainingLevel,
+      });
 
-    setAiPlan(plan);
-    setIsGenerating(false);
+      setAiPlan(plan);
+      await saveAIPlan("nutrition", plan);
+    } catch (error) {
+      console.log("Erro ao gerar plano alimentar:", error);
+    } finally {
+      setIsGenerating(false);
+    }
   }
+
+  useEffect(() => {
+    loadLatestPlan();
+  }, []);
 
   return (
     <LinearGradient colors={["#050816", "#0B1026", "#111C44"]} style={styles.container}>
@@ -94,19 +118,30 @@ export default function DietScreen() {
           </Pressable>
         </GameCard>
 
-        {aiPlan && (
+        {isLoadingPlan && (
+          <GameCard>
+            <ActivityIndicator color={colors.secondary} />
+            <Text style={styles.loadingPlanText}>Carregando último plano...</Text>
+          </GameCard>
+        )}
+
+        {!isLoadingPlan && aiPlan && (
           <GameCard>
             <Text style={styles.aiTitle}>{aiPlan.title}</Text>
             <Text style={styles.text}>{aiPlan.summary}</Text>
 
             <Text style={styles.aiSectionTitle}>Recomendações</Text>
             {aiPlan.recommendations.map((item) => (
-              <Text key={item} style={styles.aiItem}>• {item}</Text>
+              <Text key={item} style={styles.aiItem}>
+                • {item}
+              </Text>
             ))}
 
             <Text style={styles.aiSectionTitle}>Cuidados</Text>
             {aiPlan.warnings.map((item) => (
-              <Text key={item} style={styles.aiWarning}>• {item}</Text>
+              <Text key={item} style={styles.aiWarning}>
+                • {item}
+              </Text>
             ))}
           </GameCard>
         )}
@@ -224,6 +259,12 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontWeight: "900",
     letterSpacing: 0.5,
+  },
+  loadingPlanText: {
+    color: colors.textMuted,
+    textAlign: "center",
+    marginTop: 10,
+    fontWeight: "700",
   },
   aiTitle: {
     color: colors.text,
