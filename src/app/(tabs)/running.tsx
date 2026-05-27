@@ -1,9 +1,14 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { Bot, Clock, Flame, Footprints, Gauge, Map, Trophy } from "lucide-react-native";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useState } from "react";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { GameCard } from "../../components/GameCard";
 import { ProgressBar } from "../../components/ProgressBar";
 import { colors } from "../../constants/theme";
+import { useUserProfile } from "../../context/UserProfileContext";
+import { generateAIPlan } from "../../services/ai";
+import { calculateRunningCaloriesByDistance } from "../../services/fitnessCalculations";
+import { AIPlanResponse } from "../../types/ai";
 
 const runs = [
   {
@@ -30,6 +35,34 @@ const runs = [
 ];
 
 export default function RunningScreen() {
+  const { profile } = useUserProfile();
+  const [aiPlan, setAiPlan] = useState<AIPlanResponse | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const weeklyDistanceKm = 12;
+
+  const weeklyCalories = calculateRunningCaloriesByDistance(
+    profile.weightKg,
+    weeklyDistanceKm
+  );
+
+  async function handleGeneratePlan() {
+    setIsGenerating(true);
+
+    const plan = await generateAIPlan({
+      type: "running",
+      name: profile.name,
+      age: profile.age,
+      heightCm: profile.heightCm,
+      weightKg: profile.weightKg,
+      goal: profile.goal,
+      trainingLevel: profile.trainingLevel,
+    });
+
+    setAiPlan(plan);
+    setIsGenerating(false);
+  }
+
   return (
     <LinearGradient colors={["#050816", "#0B1026", "#111C44"]} style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -46,21 +79,51 @@ export default function RunningScreen() {
             <View style={{ flex: 1 }}>
               <Text style={styles.cardTitle}>Corredor IA</Text>
               <Text style={styles.text}>
-                Cria planos para 5K, 10K, resistência, emagrecimento e performance.
+                Base atual: {profile.weightKg}kg, nível {profile.trainingLevel}, idade{" "}
+                {profile.age} anos.
               </Text>
             </View>
           </View>
 
-          <Pressable style={styles.button}>
-            <Text style={styles.buttonText}>GERAR PLANO DE CORRIDA</Text>
+          <Pressable
+            style={[styles.button, isGenerating && styles.buttonDisabled]}
+            onPress={handleGeneratePlan}
+            disabled={isGenerating}
+          >
+            {isGenerating ? (
+              <ActivityIndicator color={colors.text} />
+            ) : (
+              <Text style={styles.buttonText}>GERAR PLANO DE CORRIDA</Text>
+            )}
           </Pressable>
         </GameCard>
+
+        {aiPlan && (
+          <GameCard>
+            <Text style={styles.aiTitle}>{aiPlan.title}</Text>
+            <Text style={styles.text}>{aiPlan.summary}</Text>
+
+            <Text style={styles.aiSectionTitle}>Recomendações</Text>
+            {aiPlan.recommendations.map((item) => (
+              <Text key={item} style={styles.aiItem}>
+                • {item}
+              </Text>
+            ))}
+
+            <Text style={styles.aiSectionTitle}>Cuidados</Text>
+            {aiPlan.warnings.map((item) => (
+              <Text key={item} style={styles.aiWarning}>
+                • {item}
+              </Text>
+            ))}
+          </GameCard>
+        )}
 
         <View style={styles.statsGrid}>
           <View style={styles.statItem}>
             <GameCard>
               <Map color={colors.secondary} size={24} />
-              <Text style={styles.statValue}>12 km</Text>
+              <Text style={styles.statValue}>{weeklyDistanceKm} km</Text>
               <Text style={styles.statLabel}>Semana</Text>
               <ProgressBar progress={48} />
             </GameCard>
@@ -78,7 +141,7 @@ export default function RunningScreen() {
           <View style={styles.statItem}>
             <GameCard>
               <Flame color={colors.warning} size={24} />
-              <Text style={styles.statValue}>690</Text>
+              <Text style={styles.statValue}>{weeklyCalories}</Text>
               <Text style={styles.statLabel}>Kcal</Text>
               <ProgressBar progress={70} />
             </GameCard>
@@ -170,10 +233,32 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 18,
   },
+  buttonDisabled: {
+    opacity: 0.7,
+  },
   buttonText: {
     color: colors.text,
     fontWeight: "900",
     letterSpacing: 0.5,
+  },
+  aiTitle: {
+    color: colors.text,
+    fontSize: 20,
+    fontWeight: "900",
+  },
+  aiSectionTitle: {
+    color: colors.secondary,
+    fontWeight: "900",
+    marginTop: 16,
+    marginBottom: 6,
+  },
+  aiItem: {
+    color: colors.textMuted,
+    lineHeight: 22,
+  },
+  aiWarning: {
+    color: colors.warning,
+    lineHeight: 22,
   },
   statsGrid: {
     flexDirection: "row",

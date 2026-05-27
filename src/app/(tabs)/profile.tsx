@@ -1,11 +1,19 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { Award, Calendar, Flame, Shield, Trophy, User, Zap } from "lucide-react-native";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { router } from "expo-router";
+import { Award, Calendar, Flame, Pencil, Shield, Trophy, User, Zap } from "lucide-react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { GameCard } from "../../components/GameCard";
 import { ProgressBar } from "../../components/ProgressBar";
 import { colors } from "../../constants/theme";
+import { useProgress } from "../../context/ProgressContext";
+import { useUserProfile } from "../../context/UserProfileContext";
 
 export default function ProfileScreen() {
+  const { profile } = useUserProfile();
+  const { totalXP, level, levelProgress, xpInsideLevel, missions } = useProgress();
+
+  const completedMissions = missions.filter((mission) => mission.completed).length;
+
   return (
     <LinearGradient colors={["#050816", "#0B1026", "#111C44"]} style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -21,27 +29,32 @@ export default function ProfileScreen() {
             </View>
 
             <View style={{ flex: 1 }}>
-              <Text style={styles.name}>Caçador</Text>
+              <Text style={styles.name}>{profile.name}</Text>
               <Text style={styles.class}>Classe: Guerreiro em Evolução</Text>
-              <Text style={styles.rank}>E-RANK · LEVEL 1</Text>
+              <Text style={styles.rank}>E-RANK · LEVEL {level}</Text>
             </View>
           </View>
 
           <View style={styles.xpBox}>
             <View style={styles.rowBetween}>
               <Text style={styles.label}>XP do nível</Text>
-              <Text style={styles.value}>120 / 500</Text>
+              <Text style={styles.value}>{xpInsideLevel} / 500</Text>
             </View>
 
-            <ProgressBar progress={24} />
+            <ProgressBar progress={levelProgress} />
           </View>
+
+          <Pressable style={styles.editButton} onPress={() => router.push("/edit-profile" as any)}>
+            <Pencil color={colors.text} size={18} />
+            <Text style={styles.editButtonText}>EDITAR PERFIL</Text>
+          </Pressable>
         </GameCard>
 
         <View style={styles.grid}>
           <View style={styles.gridItem}>
             <GameCard>
               <Zap color={colors.secondary} size={24} />
-              <Text style={styles.statValue}>120</Text>
+              <Text style={styles.statValue}>{totalXP}</Text>
               <Text style={styles.statLabel}>XP total</Text>
             </GameCard>
           </View>
@@ -57,7 +70,7 @@ export default function ProfileScreen() {
           <View style={styles.gridItem}>
             <GameCard>
               <Trophy color={colors.success} size={24} />
-              <Text style={styles.statValue}>3</Text>
+              <Text style={styles.statValue}>{completedMissions}</Text>
               <Text style={styles.statLabel}>Missões</Text>
             </GameCard>
           </View>
@@ -72,6 +85,17 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Dados físicos</Text>
+
+          <GameCard>
+            <Text style={styles.infoText}>Idade: {profile.age} anos</Text>
+            <Text style={styles.infoText}>Altura: {profile.heightCm} cm</Text>
+            <Text style={styles.infoText}>Peso: {profile.weightKg} kg</Text>
+            <Text style={styles.infoText}>Nível: {profile.trainingLevel}</Text>
+          </GameCard>
+        </View>
+
+        <View style={styles.section}>
           <Text style={styles.sectionTitle}>Atributos</Text>
 
           <Attribute name="Força" value={35} />
@@ -83,8 +107,17 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Conquistas</Text>
 
-          <Achievement icon={<Award color={colors.secondary} size={22} />} title="Primeiro passo" description="Criou seu personagem fitness." />
-          <Achievement icon={<Calendar color={colors.secondary} size={22} />} title="Rotina iniciada" description="Sistema de evolução ativado." />
+          <Achievement
+            icon={<Award color={colors.secondary} size={22} />}
+            title="Primeiro passo"
+            description="Criou seu personagem fitness."
+          />
+
+          <Achievement
+            icon={<Calendar color={colors.secondary} size={22} />}
+            title="Rotina iniciada"
+            description="Sistema de evolução ativado."
+          />
         </View>
       </ScrollView>
     </LinearGradient>
@@ -179,6 +212,21 @@ const styles = StyleSheet.create({
     marginTop: 20,
     gap: 10,
   },
+  editButton: {
+    marginTop: 18,
+    backgroundColor: colors.primary,
+    borderRadius: 16,
+    paddingVertical: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 8,
+  },
+  editButtonText: {
+    color: colors.text,
+    fontWeight: "900",
+    letterSpacing: 0.5,
+  },
   rowBetween: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -218,6 +266,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "900",
     marginBottom: 4,
+  },
+  infoText: {
+    color: colors.textMuted,
+    fontWeight: "700",
+    marginBottom: 8,
   },
   attributeName: {
     color: colors.text,
