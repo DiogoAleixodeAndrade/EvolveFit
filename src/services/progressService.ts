@@ -3,6 +3,15 @@ import { DailyMission } from "../types/missions";
 import { getCurrentUserId } from "./profileService";
 import { supabase } from "./supabase";
 
+function getXPActionByMissionKey(missionKey: string): DailyMission["xpAction"] {
+  if (missionKey === "meal") return "meal_logged";
+  if (missionKey === "water") return "water_goal_completed";
+  if (missionKey === "protein") return "protein_goal_completed";
+  if (missionKey === "workout") return "workout_completed";
+
+  return "run_completed";
+}
+
 export async function fetchTotalXP(): Promise<number> {
   const userId = await getCurrentUserId();
 
@@ -37,7 +46,6 @@ export async function updateTotalXP(totalXP: number) {
 
 export async function fetchTodayMissions(): Promise<DailyMission[]> {
   const userId = await getCurrentUserId();
-
   const today = new Date().toISOString().slice(0, 10);
 
   const { data, error } = await supabase
@@ -60,21 +68,13 @@ export async function fetchTodayMissions(): Promise<DailyMission[]> {
     id: mission.mission_key,
     title: mission.title,
     description: mission.description,
-    xpAction:
-      mission.mission_key === "meal"
-        ? "meal_logged"
-        : mission.mission_key === "water"
-          ? "water_goal_completed"
-          : mission.mission_key === "workout"
-            ? "workout_completed"
-            : "run_completed",
+    xpAction: getXPActionByMissionKey(mission.mission_key),
     completed: mission.completed,
   }));
 }
 
 export async function createTodayMissions() {
   const userId = await getCurrentUserId();
-
   const today = new Date().toISOString().slice(0, 10);
 
   const missionsToInsert = initialDailyMissions.map((mission) => ({
@@ -87,7 +87,9 @@ export async function createTodayMissions() {
     mission_date: today,
   }));
 
-  const { error } = await supabase.from("daily_missions").insert(missionsToInsert);
+  const { error } = await supabase
+    .from("daily_missions")
+    .insert(missionsToInsert);
 
   if (error) {
     throw error;
@@ -96,7 +98,6 @@ export async function createTodayMissions() {
 
 export async function markMissionAsCompleted(missionId: string) {
   const userId = await getCurrentUserId();
-
   const today = new Date().toISOString().slice(0, 10);
 
   const { error } = await supabase
