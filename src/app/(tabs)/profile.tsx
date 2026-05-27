@@ -9,6 +9,7 @@ import { useProgress } from "../../context/ProgressContext";
 import { useUserProfile } from "../../context/UserProfileContext";
 import { supabase } from "../../services/supabase";
 import { useCallback, useState } from "react";
+import { getHunterRank, getRankColor } from "../../services/rankSystem";
 import {
   Achievement as AchievementType,
   fetchAchievements,
@@ -28,9 +29,12 @@ export default function ProfileScreen() {
 } = useProgress();
 
   const completedMissions = missions.filter((mission) => mission.completed).length;
+  const hunterRank = getHunterRank(totalXP);
+  const rankColor = getRankColor(hunterRank);
   const isLoading = isLoadingProfile || isLoadingProgress;
   const [achievements, setAchievements] = useState<AchievementType[]>([]);
   const [isLoadingAchievements, setIsLoadingAchievements] = useState(true);
+  
 
   async function handleLogout() {
     const { error } = await supabase.auth.signOut();
@@ -88,7 +92,9 @@ export default function ProfileScreen() {
             <View style={{ flex: 1 }}>
               <Text style={styles.name}>{profile.name}</Text>
               <Text style={styles.class}>Classe: Guerreiro em Evolução</Text>
-              <Text style={styles.rank}>E-RANK · LEVEL {level}</Text>
+              <Text style={[styles.rank, { color: rankColor }]}>
+  {hunterRank}-RANK · LEVEL {level}
+</Text>
             </View>
           </View>
 
@@ -140,7 +146,9 @@ export default function ProfileScreen() {
           <View style={styles.gridItem}>
             <GameCard>
               <Shield color={colors.primary} size={24} />
-              <Text style={styles.statValue}>E</Text>
+              <Text style={[styles.statValue, { color: rankColor }]}>
+  {hunterRank}
+</Text>
               <Text style={styles.statLabel}>Rank</Text>
             </GameCard>
           </View>

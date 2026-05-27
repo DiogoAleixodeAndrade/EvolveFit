@@ -5,6 +5,7 @@ import {
   Dumbbell,
   Flame,
   Footprints,
+  Shield,
   Target,
   Trophy,
   Utensils,
@@ -41,6 +42,13 @@ export const playerStats = [
     value: "1",
     label: "Level",
   },
+  {
+  id: "rank",
+  icon: Shield,
+  iconColor: colors.primary,
+  value: "E",
+  label: "Rank",
+},
 ];
 
 export const dailyMissions = [

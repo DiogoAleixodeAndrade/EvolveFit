@@ -7,6 +7,7 @@ import { colors } from "../../constants/theme";
 import { useProgress } from "../../context/ProgressContext";
 import { aiAssistants, playerStats } from "../../data/dashboard";
 import { getXPByAction } from "../../services/fitnessCalculations";
+import { getHunterRank, getRankColor } from "../../services/rankSystem";
 
 export default function DashboardScreen() {
   const {
@@ -19,6 +20,9 @@ export default function DashboardScreen() {
   isLoadingProgress,
   completeMission,
 } = useProgress();
+
+  const hunterRank = getHunterRank(totalXP);
+  const rankColor = getRankColor(hunterRank);
 
   if (isLoadingProgress) {
     return (
@@ -36,7 +40,9 @@ export default function DashboardScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
           <Text style={styles.welcome}>Bem-vindo, Caçador</Text>
-          <Text style={styles.title}>E-RANK · LEVEL {level}</Text>
+          <Text style={[styles.title, { color: rankColor }]}>
+  {hunterRank}-RANK · LEVEL {level}
+</Text>
           <Text style={styles.subtitle}>Sistema de evolução ativado</Text>
         </View>
 
@@ -53,15 +59,17 @@ export default function DashboardScreen() {
           {playerStats.map((stat) => {
             const Icon = stat.icon;
             const value =
-              stat.id === "xp"
-                ? String(totalXP)
-                : stat.id === "level"
-                  ? String(level)
-                  : stat.id === "missions"
-  ? String(missions.filter((mission) => mission.completed).length)
-  : stat.id === "streak"
-    ? String(currentStreak)
-    : stat.value;
+  stat.id === "xp"
+    ? String(totalXP)
+    : stat.id === "level"
+      ? String(level)
+      : stat.id === "missions"
+        ? String(missions.filter((mission) => mission.completed).length)
+        : stat.id === "streak"
+          ? String(currentStreak)
+          : stat.id === "rank"
+            ? hunterRank
+            : stat.value;
 
             return (
               <View key={stat.id} style={styles.gridItem}>
