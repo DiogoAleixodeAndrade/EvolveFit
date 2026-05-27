@@ -1,5 +1,6 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import { initialDailyMissions } from "../data/missions";
+import { unlockAchievement } from "../services/achievementService";
 import {
   calculateCurrentLevelProgress,
   calculateLevelFromXP,
@@ -11,6 +12,7 @@ import {
   markMissionAsCompleted,
   updateTotalXP,
 } from "../services/progressService";
+import { fetchStreak, registerDailyActivity } from "../services/streakService";
 import { DailyMission } from "../types/missions";
 
 type ProgressContextData = {
@@ -19,6 +21,8 @@ type ProgressContextData = {
   level: number;
   levelProgress: number;
   xpInsideLevel: number;
+  currentStreak: number;
+  bestStreak: number;
   isLoadingProgress: boolean;
   completeMission: (missionId: string) => Promise<void>;
   reloadProgress: () => Promise<void>;
@@ -33,6 +37,8 @@ type ProgressProviderProps = {
 export function ProgressProvider({ children }: ProgressProviderProps) {
   const [missions, setMissions] = useState<DailyMission[]>(initialDailyMissions);
   const [totalXP, setTotalXP] = useState(0);
+  const [currentStreak, setCurrentStreak] = useState(0);
+  const [bestStreak, setBestStreak] = useState(0);
   const [isLoadingProgress, setIsLoadingProgress] = useState(true);
 
   const level = calculateLevelFromXP(totalXP);
@@ -43,13 +49,17 @@ export function ProgressProvider({ children }: ProgressProviderProps) {
     try {
       setIsLoadingProgress(true);
 
-      const [xpFromSupabase, missionsFromSupabase] = await Promise.all([
-        fetchTotalXP(),
-        fetchTodayMissions(),
-      ]);
+      const [xpFromSupabase, missionsFromSupabase, streakFromSupabase] =
+        await Promise.all([
+          fetchTotalXP(),
+          fetchTodayMissions(),
+          fetchStreak(),
+        ]);
 
       setTotalXP(xpFromSupabase);
       setMissions(missionsFromSupabase);
+      setCurrentStreak(streakFromSupabase.currentStreak);
+      setBestStreak(streakFromSupabase.bestStreak);
     } catch (error) {
       console.log("Erro ao carregar progresso:", error);
     } finally {
@@ -83,6 +93,41 @@ export function ProgressProvider({ children }: ProgressProviderProps) {
     try {
       await markMissionAsCompleted(missionId);
       await updateTotalXP(newTotalXP);
+
+      if (newTotalXP >= 500) {
+  await unlockAchievement(
+    "level_2_reached",
+    "Primeira evolução",
+    "Você passou dos 500 XP e avançou no sistema."
+  );
+}
+
+if (newTotalXP >= 1500) {
+  await unlockAchievement(
+    "xp_1500",
+    "Caçador em ascensão",
+    "Você acumulou mais de 1500 XP."
+  );
+}
+
+      const newStreak = await registerDailyActivity();
+      if (newStreak.currentStreak >= 3) {
+  await unlockAchievement(
+    "streak_3",
+    "Disciplina inicial",
+    "Você manteve uma sequência de 3 dias ativos."
+  );
+}
+
+if (newStreak.currentStreak >= 7) {
+  await unlockAchievement(
+    "streak_7",
+    "Semana de caçador",
+    "Você manteve uma sequência de 7 dias ativos."
+  );
+}
+      setCurrentStreak(newStreak.currentStreak);
+      setBestStreak(newStreak.bestStreak);
     } catch (error) {
       console.log("Erro ao salvar missão:", error);
       await reloadProgress();
@@ -101,6 +146,8 @@ export function ProgressProvider({ children }: ProgressProviderProps) {
         level,
         levelProgress,
         xpInsideLevel,
+        currentStreak,
+        bestStreak,
         isLoadingProgress,
         completeMission,
         reloadProgress,

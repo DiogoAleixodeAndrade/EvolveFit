@@ -1,5 +1,5 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { Award, Calendar, Flame, LogOut, Pencil, Shield, Trophy, User, Zap } from "lucide-react-native";
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { GameCard } from "../../components/GameCard";
@@ -8,20 +8,29 @@ import { colors } from "../../constants/theme";
 import { useProgress } from "../../context/ProgressContext";
 import { useUserProfile } from "../../context/UserProfileContext";
 import { supabase } from "../../services/supabase";
+import { useCallback, useState } from "react";
+import {
+  Achievement as AchievementType,
+  fetchAchievements,
+} from "../../services/achievementService";
 
 export default function ProfileScreen() {
   const { profile, isLoadingProfile } = useUserProfile();
   const {
-    totalXP,
-    level,
-    levelProgress,
-    xpInsideLevel,
-    missions,
-    isLoadingProgress,
-  } = useProgress();
+  totalXP,
+  level,
+  levelProgress,
+  xpInsideLevel,
+  missions,
+  currentStreak,
+  bestStreak,
+  isLoadingProgress,
+} = useProgress();
 
   const completedMissions = missions.filter((mission) => mission.completed).length;
   const isLoading = isLoadingProfile || isLoadingProgress;
+  const [achievements, setAchievements] = useState<AchievementType[]>([]);
+  const [isLoadingAchievements, setIsLoadingAchievements] = useState(true);
 
   async function handleLogout() {
     const { error } = await supabase.auth.signOut();
@@ -33,6 +42,23 @@ export default function ProfileScreen() {
 
     router.replace("/" as any);
   }
+
+  async function loadAchievements() {
+  try {
+    setIsLoadingAchievements(true);
+    const achievementsFromSupabase = await fetchAchievements();
+    setAchievements(achievementsFromSupabase);
+  } catch (error) {
+    console.log("Erro ao carregar conquistas:", error);
+  } finally {
+    setIsLoadingAchievements(false);
+  }
+}
+  useFocusEffect(
+  useCallback(() => {
+    loadAchievements();
+  }, [])
+);
 
   if (isLoading) {
     return (
@@ -98,8 +124,8 @@ export default function ProfileScreen() {
           <View style={styles.gridItem}>
             <GameCard>
               <Flame color={colors.warning} size={24} />
-              <Text style={styles.statValue}>0</Text>
-              <Text style={styles.statLabel}>Streak</Text>
+              <Text style={styles.statValue}>{currentStreak}</Text>
+              <Text style={styles.statLabel}>Streak atual</Text>
             </GameCard>
           </View>
 
@@ -128,6 +154,7 @@ export default function ProfileScreen() {
             <Text style={styles.infoText}>Altura: {profile.heightCm} cm</Text>
             <Text style={styles.infoText}>Peso: {profile.weightKg} kg</Text>
             <Text style={styles.infoText}>Nível: {profile.trainingLevel}</Text>
+            <Text style={styles.infoText}>Melhor streak: {bestStreak} dias</Text>
           </GameCard>
         </View>
 
@@ -143,17 +170,28 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Conquistas</Text>
 
-          <Achievement
-            icon={<Award color={colors.secondary} size={22} />}
-            title="Primeiro passo"
-            description="Criou seu personagem fitness."
-          />
+          {isLoadingAchievements && (
+  <GameCard>
+    <ActivityIndicator color={colors.secondary} />
+    <Text style={styles.loadingText}>Carregando conquistas...</Text>
+  </GameCard>
+)}
 
-          <Achievement
-            icon={<Calendar color={colors.secondary} size={22} />}
-            title="Rotina iniciada"
-            description="Sistema de evolução ativado."
-          />
+{!isLoadingAchievements && achievements.length === 0 && (
+  <GameCard>
+    <Text style={styles.infoText}>Nenhuma conquista desbloqueada ainda.</Text>
+  </GameCard>
+)}
+
+{!isLoadingAchievements &&
+  achievements.map((achievement) => (
+    <Achievement
+      key={achievement.id}
+      icon={<Award color={colors.secondary} size={22} />}
+      title={achievement.title}
+      description={achievement.description}
+    />
+  ))}
         </View>
       </ScrollView>
     </LinearGradient>

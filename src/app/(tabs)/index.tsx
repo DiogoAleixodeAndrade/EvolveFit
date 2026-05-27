@@ -10,14 +10,15 @@ import { getXPByAction } from "../../services/fitnessCalculations";
 
 export default function DashboardScreen() {
   const {
-    missions,
-    totalXP,
-    level,
-    levelProgress,
-    xpInsideLevel,
-    isLoadingProgress,
-    completeMission,
-  } = useProgress();
+  missions,
+  totalXP,
+  level,
+  levelProgress,
+  xpInsideLevel,
+  currentStreak,
+  isLoadingProgress,
+  completeMission,
+} = useProgress();
 
   if (isLoadingProgress) {
     return (
@@ -57,8 +58,10 @@ export default function DashboardScreen() {
                 : stat.id === "level"
                   ? String(level)
                   : stat.id === "missions"
-                    ? String(missions.filter((mission) => mission.completed).length)
-                    : stat.value;
+  ? String(missions.filter((mission) => mission.completed).length)
+  : stat.id === "streak"
+    ? String(currentStreak)
+    : stat.value;
 
             return (
               <View key={stat.id} style={styles.gridItem}>
