@@ -1,6 +1,7 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useState } from "react";
+import { scheduleDailyReminders } from "../../services/notificationService";
 import {
   ActivityIndicator,
   Alert,
@@ -43,6 +44,8 @@ export default function LoginScreen() {
       return;
     }
 
+    await scheduleDailyReminders();
+
     router.replace("/(tabs)" as any);
   }
 
@@ -53,6 +56,7 @@ export default function LoginScreen() {
       const result = await signInWithGoogle();
 
       if (result) {
+        await scheduleDailyReminders();
         router.replace("/(tabs)" as any);
       }
     } catch (error) {

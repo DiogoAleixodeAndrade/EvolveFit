@@ -479,7 +479,7 @@ waterButton: {
   borderRadius: 12,
   paddingVertical: 10,
   alignItems: "center",
-},git 
+},
 waterButtonText: {
   color: colors.secondary,
   fontWeight: "900",

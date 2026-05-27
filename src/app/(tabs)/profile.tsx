@@ -1,6 +1,6 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useFocusEffect } from "expo-router";
-import { Award, Calendar, Flame, LogOut, Pencil, Shield, Trophy, User, Zap } from "lucide-react-native";
+import { Award, Calendar, Flame, LogOut, Pencil, Settings, Shield, Trophy, User, Zap } from "lucide-react-native";
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { GameCard } from "../../components/GameCard";
 import { ProgressBar } from "../../components/ProgressBar";
@@ -111,6 +111,11 @@ export default function ProfileScreen() {
             <Pencil color={colors.text} size={18} />
             <Text style={styles.editButtonText}>EDITAR PERFIL</Text>
           </Pressable>
+
+          <Pressable style={styles.settingsButton} onPress={() => router.push("/settings" as any)}>
+  <Settings color={colors.secondary} size={18} />
+  <Text style={styles.settingsButtonText}>CONFIGURAÇÕES</Text>
+</Pressable>
 
           <Pressable style={styles.logoutButton} onPress={handleLogout}>
             <LogOut color={colors.danger} size={18} />
@@ -396,4 +401,20 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     marginTop: 4,
   },
+  settingsButton: {
+  marginTop: 10,
+  borderRadius: 16,
+  paddingVertical: 14,
+  alignItems: "center",
+  justifyContent: "center",
+  flexDirection: "row",
+  gap: 8,
+  borderWidth: 1,
+  borderColor: "rgba(0,229,255,0.35)",
+},
+settingsButtonText: {
+  color: colors.secondary,
+  fontWeight: "900",
+  letterSpacing: 0.5,
+},
 });
