@@ -1,5 +1,5 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { GameCard } from "../../components/GameCard";
 import { MissionCard } from "../../components/MissionCard";
 import { ProgressBar } from "../../components/ProgressBar";
@@ -15,8 +15,20 @@ export default function DashboardScreen() {
     level,
     levelProgress,
     xpInsideLevel,
+    isLoadingProgress,
     completeMission,
   } = useProgress();
+
+  if (isLoadingProgress) {
+    return (
+      <LinearGradient colors={["#050816", "#0B1026", "#111C44"]} style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator color={colors.secondary} size="large" />
+          <Text style={styles.loadingText}>Carregando sistema...</Text>
+        </View>
+      </LinearGradient>
+    );
+  }
 
   return (
     <LinearGradient colors={["#050816", "#0B1026", "#111C44"]} style={styles.container}>
@@ -106,6 +118,16 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loadingText: {
+    color: colors.textMuted,
+    marginTop: 14,
+    fontWeight: "700",
   },
   content: {
     padding: 20,

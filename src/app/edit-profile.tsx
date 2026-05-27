@@ -2,6 +2,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -24,23 +25,35 @@ export default function EditProfileScreen() {
   const [heightCm, setHeightCm] = useState(String(profile.heightCm));
   const [weightKg, setWeightKg] = useState(String(profile.weightKg));
   const [goal, setGoal] = useState<FitnessGoal>(profile.goal);
+  const [isSaving, setIsSaving] = useState(false);
 
-  function handleSave() {
+  async function handleSave() {
     if (!name || !age || !heightCm || !weightKg) {
       Alert.alert("Atenção", "Preencha todos os campos.");
       return;
     }
 
-    updateProfile({
-      ...profile,
-      name,
-      age: Number(age),
-      heightCm: Number(heightCm),
-      weightKg: Number(weightKg),
-      goal,
-    });
+    try {
+      setIsSaving(true);
 
-    router.back();
+      await updateProfile({
+        ...profile,
+        name,
+        age: Number(age),
+        heightCm: Number(heightCm),
+        weightKg: Number(weightKg),
+        goal,
+      });
+
+      router.back();
+    } catch (error) {
+      Alert.alert(
+        "Erro ao salvar",
+        error instanceof Error ? error.message : "Não foi possível salvar o perfil."
+      );
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
@@ -120,8 +133,16 @@ export default function EditProfileScreen() {
             />
           </View>
 
-          <Pressable style={styles.button} onPress={handleSave}>
-            <Text style={styles.buttonText}>SALVAR PERFIL</Text>
+          <Pressable
+            style={[styles.button, isSaving && styles.buttonDisabled]}
+            onPress={handleSave}
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <ActivityIndicator color={colors.text} />
+            ) : (
+              <Text style={styles.buttonText}>SALVAR PERFIL</Text>
+            )}
           </Pressable>
 
           <Pressable style={styles.secondaryButton} onPress={() => router.back()}>
@@ -222,6 +243,9 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     paddingVertical: 18,
     alignItems: "center",
+  },
+  buttonDisabled: {
+    opacity: 0.7,
   },
   buttonText: {
     color: colors.text,

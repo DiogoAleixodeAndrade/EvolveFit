@@ -1,7 +1,7 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { Award, Calendar, Flame, LogOut, Pencil, Shield, Trophy, User, Zap } from "lucide-react-native";
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { GameCard } from "../../components/GameCard";
 import { ProgressBar } from "../../components/ProgressBar";
 import { colors } from "../../constants/theme";
@@ -10,10 +10,18 @@ import { useUserProfile } from "../../context/UserProfileContext";
 import { supabase } from "../../services/supabase";
 
 export default function ProfileScreen() {
-  const { profile } = useUserProfile();
-  const { totalXP, level, levelProgress, xpInsideLevel, missions } = useProgress();
+  const { profile, isLoadingProfile } = useUserProfile();
+  const {
+    totalXP,
+    level,
+    levelProgress,
+    xpInsideLevel,
+    missions,
+    isLoadingProgress,
+  } = useProgress();
 
   const completedMissions = missions.filter((mission) => mission.completed).length;
+  const isLoading = isLoadingProfile || isLoadingProgress;
 
   async function handleLogout() {
     const { error } = await supabase.auth.signOut();
@@ -24,6 +32,17 @@ export default function ProfileScreen() {
     }
 
     router.replace("/" as any);
+  }
+
+  if (isLoading) {
+    return (
+      <LinearGradient colors={["#050816", "#0B1026", "#111C44"]} style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator color={colors.secondary} size="large" />
+          <Text style={styles.loadingText}>Carregando perfil...</Text>
+        </View>
+      </LinearGradient>
+    );
   }
 
   return (
@@ -179,6 +198,16 @@ function Achievement({
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loadingText: {
+    color: colors.textMuted,
+    marginTop: 14,
+    fontWeight: "700",
+  },
   content: {
     padding: 20,
     paddingTop: 60,
