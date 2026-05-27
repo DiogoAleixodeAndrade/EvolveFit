@@ -73,6 +73,21 @@ const glowStyle = useAnimatedStyle(() => ({
     <ProgressBar progress={levelProgress} />
   </GameCard>
 </Animated.View>
+<Animated.View entering={FadeInDown.delay(180).duration(600)}>
+  <GameCard>
+    <View style={styles.rankSystemCard}>
+      <Text style={styles.rankSystemLabel}>RANK DO CAÇADOR</Text>
+
+      <Text style={[styles.rankSystemValue, { color: rankColor }]}>
+        {hunterRank}-RANK
+      </Text>
+
+      <Text style={styles.rankSystemText}>
+        Continue completando missões para evoluir seu rank e desbloquear conquistas.
+      </Text>
+    </View>
+  </GameCard>
+</Animated.View>
 
         <View style={styles.grid}>
   {playerStats.map((stat, index) => {
@@ -269,5 +284,26 @@ glow: {
   bottom: -2,
   borderRadius: 24,
   backgroundColor: "rgba(0,229,255,0.22)",
+},
+rankSystemCard: {
+  alignItems: "center",
+  paddingVertical: 10,
+},
+rankSystemLabel: {
+  color: colors.secondary,
+  fontSize: 12,
+  fontWeight: "900",
+  letterSpacing: 2,
+},
+rankSystemValue: {
+  fontSize: 42,
+  fontWeight: "900",
+  marginTop: 8,
+},
+rankSystemText: {
+  color: colors.textMuted,
+  textAlign: "center",
+  marginTop: 8,
+  lineHeight: 20,
 },
 });
