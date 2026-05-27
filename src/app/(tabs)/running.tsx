@@ -10,6 +10,10 @@ import { generateAIPlan } from "../../services/ai";
 import { fetchLatestAIPlan, saveAIPlan } from "../../services/aiPlanService";
 import { calculateRunningCaloriesByDistance } from "../../services/fitnessCalculations";
 import { AIPlanResponse } from "../../types/ai";
+import { router, useFocusEffect } from "expo-router";
+import { Plus, Trash2 } from "lucide-react-native";
+import { useCallback } from "react";
+import { deleteRun, fetchTodayRuns, Run } from "../../services/runService";
 
 const runs = [
   {
@@ -41,12 +45,29 @@ export default function RunningScreen() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLoadingPlan, setIsLoadingPlan] = useState(true);
 
+  const [runsLogged, setRunsLogged] = useState<Run[]>([]);
+  const [isLoadingRuns, setIsLoadingRuns] = useState(true);
+
   const weeklyDistanceKm = 12;
 
   const weeklyCalories = calculateRunningCaloriesByDistance(
     profile.weightKg,
     weeklyDistanceKm
   );
+
+  const loggedDistanceKm = runsLogged.reduce((total, run) => total + run.distanceKm, 0);
+const loggedCalories = runsLogged.reduce((total, run) => total + run.calories, 0);
+const loggedDuration = runsLogged.reduce((total, run) => total + run.durationMinutes, 0);
+
+const averagePace =
+  loggedDistanceKm > 0
+    ? loggedDuration / loggedDistanceKm
+    : 0;
+
+const averagePaceText =
+  averagePace > 0
+    ? `${Math.floor(averagePace)}:${String(Math.round((averagePace % 1) * 60)).padStart(2, "0")}`
+    : "--:--";
 
   async function loadLatestPlan() {
     try {
@@ -59,6 +80,27 @@ export default function RunningScreen() {
       setIsLoadingPlan(false);
     }
   }
+
+  async function loadRuns() {
+  try {
+    setIsLoadingRuns(true);
+    const runsFromSupabase = await fetchTodayRuns();
+    setRunsLogged(runsFromSupabase);
+  } catch (error) {
+    console.log("Erro ao carregar corridas:", error);
+  } finally {
+    setIsLoadingRuns(false);
+  }
+}
+
+async function handleDeleteRun(runId: string) {
+  try {
+    await deleteRun(runId);
+    await loadRuns();
+  } catch (error) {
+    console.log("Erro ao apagar corrida:", error);
+  }
+}
 
   async function handleGeneratePlan() {
     setIsGenerating(true);
@@ -82,6 +124,12 @@ export default function RunningScreen() {
       setIsGenerating(false);
     }
   }
+
+  useFocusEffect(
+  useCallback(() => {
+    loadRuns();
+  }, [])
+);
 
   useEffect(() => {
     loadLatestPlan();
@@ -154,7 +202,7 @@ export default function RunningScreen() {
           <View style={styles.statItem}>
             <GameCard>
               <Map color={colors.secondary} size={24} />
-              <Text style={styles.statValue}>{weeklyDistanceKm} km</Text>
+              <Text style={styles.statValue}>{loggedDistanceKm.toFixed(1)} km</Text>
               <Text style={styles.statLabel}>Semana</Text>
               <ProgressBar progress={48} />
             </GameCard>
@@ -163,7 +211,7 @@ export default function RunningScreen() {
           <View style={styles.statItem}>
             <GameCard>
               <Gauge color={colors.secondary} size={24} />
-              <Text style={styles.statValue}>6:40</Text>
+              <Text style={styles.statValue}>{averagePaceText}</Text>
               <Text style={styles.statLabel}>Pace médio</Text>
               <ProgressBar progress={62} />
             </GameCard>
@@ -172,7 +220,7 @@ export default function RunningScreen() {
           <View style={styles.statItem}>
             <GameCard>
               <Flame color={colors.warning} size={24} />
-              <Text style={styles.statValue}>{weeklyCalories}</Text>
+              <Text style={styles.statValue}>{loggedCalories}</Text>
               <Text style={styles.statLabel}>Kcal</Text>
               <ProgressBar progress={70} />
             </GameCard>
@@ -190,6 +238,46 @@ export default function RunningScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Plano da semana</Text>
+
+          <View style={styles.sectionHeader}>
+  <Text style={styles.sectionTitle}>Corridas de hoje</Text>
+
+  <Pressable style={styles.addButton} onPress={() => router.push("/add-run" as any)}>
+    <Plus color={colors.text} size={18} />
+  </Pressable>
+</View>
+
+{isLoadingRuns && (
+  <GameCard>
+    <ActivityIndicator color={colors.secondary} />
+    <Text style={styles.loadingPlanText}>Carregando corridas...</Text>
+  </GameCard>
+)}
+
+{!isLoadingRuns && runsLogged.length === 0 && (
+  <GameCard>
+    <Text style={styles.text}>Nenhuma corrida registrada hoje.</Text>
+  </GameCard>
+)}
+
+{!isLoadingRuns &&
+  runsLogged.map((run) => (
+    <GameCard key={run.id}>
+      <View style={styles.runHeader}>
+        <Text style={styles.runName}>{run.title}</Text>
+
+        <Pressable onPress={() => handleDeleteRun(run.id)} style={styles.deleteButton}>
+          <Trash2 color={colors.danger} size={18} />
+        </Pressable>
+      </View>
+
+      <Text style={styles.text}>
+        {run.distanceKm} km · {run.durationMinutes} min · {run.calories} kcal
+      </Text>
+    </GameCard>
+  ))}
+
+<Text style={styles.sectionTitle}>Sugestão da semana</Text>
 
           {runs.map((run) => (
             <GameCard key={run.id}>
@@ -349,4 +437,31 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     opacity: 0.8,
   },
+  sectionHeader: {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "space-between",
+},
+addButton: {
+  width: 36,
+  height: 36,
+  borderRadius: 18,
+  backgroundColor: colors.primary,
+  alignItems: "center",
+  justifyContent: "center",
+},
+runHeader: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: 12,
+},
+deleteButton: {
+  width: 36,
+  height: 36,
+  borderRadius: 18,
+  alignItems: "center",
+  justifyContent: "center",
+  backgroundColor: "rgba(239,68,68,0.12)",
+},
 });

@@ -10,6 +10,14 @@ import { generateAIPlan } from "../../services/ai";
 import { fetchLatestAIPlan, saveAIPlan } from "../../services/aiPlanService";
 import { calculateCaloriesByExercise } from "../../services/fitnessCalculations";
 import { AIPlanResponse } from "../../types/ai";
+import { router, useFocusEffect } from "expo-router";
+import { Plus, Trash2 } from "lucide-react-native";
+import { useCallback } from "react";
+import {
+  deleteWorkout,
+  fetchTodayWorkouts,
+  Workout,
+} from "../../services/workoutService";
 
 const exercises = [
   {
@@ -40,6 +48,8 @@ export default function TrainingScreen() {
   const [aiPlan, setAiPlan] = useState<AIPlanResponse | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLoadingPlan, setIsLoadingPlan] = useState(true);
+  const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
 
   const workoutDurationMinutes = 60;
 
@@ -60,6 +70,27 @@ export default function TrainingScreen() {
       setIsLoadingPlan(false);
     }
   }
+
+  async function loadWorkouts() {
+  try {
+    setIsLoadingWorkouts(true);
+    const workoutsFromSupabase = await fetchTodayWorkouts();
+    setWorkouts(workoutsFromSupabase);
+  } catch (error) {
+    console.log("Erro ao carregar treinos:", error);
+  } finally {
+    setIsLoadingWorkouts(false);
+  }
+}
+
+  async function handleDeleteWorkout(workoutId: string) {
+  try {
+    await deleteWorkout(workoutId);
+    await loadWorkouts();
+  } catch (error) {
+    console.log("Erro ao apagar treino:", error);
+  }
+}
 
   async function handleGeneratePlan() {
     setIsGenerating(true);
@@ -87,6 +118,12 @@ export default function TrainingScreen() {
   useEffect(() => {
     loadLatestPlan();
   }, []);
+
+  useFocusEffect(
+  useCallback(() => {
+    loadWorkouts();
+  }, [])
+);
 
   return (
     <LinearGradient colors={["#050816", "#0B1026", "#111C44"]} style={styles.container}>
@@ -181,7 +218,46 @@ export default function TrainingScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Treino de hoje</Text>
+          <View style={styles.sectionHeader}>
+  <Text style={styles.sectionTitle}>Sugestão de treino</Text>
+
+  <Pressable style={styles.addButton} onPress={() => router.push("/add-workout" as any)}>
+    <Plus color={colors.text} size={18} />
+  </Pressable>
+</View>
+
+        {isLoadingWorkouts && (
+  <GameCard>
+    <ActivityIndicator color={colors.secondary} />
+    <Text style={styles.loadingPlanText}>Carregando treinos...</Text>
+  </GameCard>
+)}
+
+{!isLoadingWorkouts && workouts.length === 0 && (
+  <GameCard>
+    <Text style={styles.text}>Nenhum treino registrado hoje.</Text>
+  </GameCard>
+)}
+
+{!isLoadingWorkouts &&
+  workouts.map((workout) => (
+    <GameCard key={workout.id}>
+      <View style={styles.workoutHeader}>
+        <Text style={styles.exerciseName}>{workout.title}</Text>
+
+        <Pressable
+          onPress={() => handleDeleteWorkout(workout.id)}
+          style={styles.deleteButton}
+        >
+          <Trash2 color={colors.danger} size={18} />
+        </Pressable>
+      </View>
+
+      <Text style={styles.text}>
+        {workout.durationMinutes} min · {workout.calories} kcal
+      </Text>
+    </GameCard>
+  ))}
 
           {exercises.map((exercise) => (
             <GameCard key={exercise.id}>
@@ -341,4 +417,31 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     opacity: 0.8,
   },
+  sectionHeader: {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "space-between",
+},
+addButton: {
+  width: 36,
+  height: 36,
+  borderRadius: 18,
+  backgroundColor: colors.primary,
+  alignItems: "center",
+  justifyContent: "center",
+},
+workoutHeader: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: 12,
+},
+deleteButton: {
+  width: 36,
+  height: 36,
+  borderRadius: 18,
+  alignItems: "center",
+  justifyContent: "center",
+  backgroundColor: "rgba(239,68,68,0.12)",
+},
 });
