@@ -1,10 +1,39 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { Activity, Flame, Shield, Swords } from "lucide-react-native";
-import { Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
 import { colors } from "../constants/theme";
+import { supabase } from "../services/supabase";
 
 export default function HomeScreen() {
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
+
+  useEffect(() => {
+    async function checkSession() {
+      const { data } = await supabase.auth.getSession();
+
+      if (data.session) {
+        router.replace("/(tabs)" as any);
+      }
+
+      setIsCheckingSession(false);
+    }
+
+    checkSession();
+  }, []);
+
+  if (isCheckingSession) {
+    return (
+      <LinearGradient colors={["#050816", "#0B1026", "#111C44"]} style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator color={colors.secondary} size="large" />
+          <Text style={styles.loadingText}>Carregando sistema...</Text>
+        </View>
+      </LinearGradient>
+    );
+  }
+
   return (
     <LinearGradient colors={["#050816", "#0B1026", "#111C44"]} style={styles.container}>
       <SafeAreaView style={styles.safe}>
@@ -14,10 +43,10 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.rankCard}>
-          <Text style={styles.rankLabel}>RANK ATUAL</Text>
+          <Text style={styles.rankLabel}>SISTEMA ATIVADO</Text>
           <Text style={styles.rank}>E-RANK</Text>
           <Text style={styles.rankDescription}>
-            Complete missões diárias, evolua seu corpo e desbloqueie novos níveis.
+            Entre na sua conta, complete missões diárias, evolua seu corpo e suba de nível.
           </Text>
         </View>
 
@@ -47,15 +76,12 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        <View style={styles.missionBox}>
-          <Text style={styles.sectionTitle}>Missões de hoje</Text>
-          <Text style={styles.mission}>☐ Registrar primeira refeição</Text>
-          <Text style={styles.mission}>☐ Beber meta de água</Text>
-          <Text style={styles.mission}>☐ Completar treino do dia</Text>
-        </View>
+        <Pressable style={styles.button} onPress={() => router.push("/auth/login" as any)}>
+          <Text style={styles.buttonText}>ENTRAR NO SISTEMA</Text>
+        </Pressable>
 
-        <Pressable style={styles.button} onPress={() => router.push("/onboarding")}>
-          <Text style={styles.buttonText}>COMEÇAR EVOLUÇÃO</Text>
+        <Pressable style={styles.secondaryButton} onPress={() => router.push("/auth/register" as any)}>
+          <Text style={styles.secondaryButtonText}>CRIAR CONTA</Text>
         </Pressable>
       </SafeAreaView>
     </LinearGradient>
@@ -65,6 +91,16 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loadingText: {
+    color: colors.textMuted,
+    marginTop: 14,
+    fontWeight: "700",
   },
   safe: {
     flex: 1,
@@ -133,22 +169,6 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     marginTop: 4,
   },
-  missionBox: {
-    backgroundColor: colors.surface,
-    borderRadius: 24,
-    padding: 18,
-  },
-  sectionTitle: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: "800",
-    marginBottom: 12,
-  },
-  mission: {
-    color: colors.textMuted,
-    fontSize: 15,
-    marginBottom: 8,
-  },
   button: {
     backgroundColor: colors.primary,
     borderRadius: 18,
@@ -162,5 +182,17 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontWeight: "900",
     letterSpacing: 1,
+  },
+  secondaryButton: {
+    marginTop: -10,
+    borderRadius: 18,
+    paddingVertical: 16,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.14)",
+  },
+  secondaryButtonText: {
+    color: colors.secondary,
+    fontWeight: "900",
   },
 });

@@ -1,18 +1,30 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { Award, Calendar, Flame, Pencil, Shield, Trophy, User, Zap } from "lucide-react-native";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Award, Calendar, Flame, LogOut, Pencil, Shield, Trophy, User, Zap } from "lucide-react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { GameCard } from "../../components/GameCard";
 import { ProgressBar } from "../../components/ProgressBar";
 import { colors } from "../../constants/theme";
 import { useProgress } from "../../context/ProgressContext";
 import { useUserProfile } from "../../context/UserProfileContext";
+import { supabase } from "../../services/supabase";
 
 export default function ProfileScreen() {
   const { profile } = useUserProfile();
   const { totalXP, level, levelProgress, xpInsideLevel, missions } = useProgress();
 
   const completedMissions = missions.filter((mission) => mission.completed).length;
+
+  async function handleLogout() {
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      Alert.alert("Erro ao sair", error.message);
+      return;
+    }
+
+    router.replace("/" as any);
+  }
 
   return (
     <LinearGradient colors={["#050816", "#0B1026", "#111C44"]} style={styles.container}>
@@ -47,6 +59,11 @@ export default function ProfileScreen() {
           <Pressable style={styles.editButton} onPress={() => router.push("/edit-profile" as any)}>
             <Pencil color={colors.text} size={18} />
             <Text style={styles.editButtonText}>EDITAR PERFIL</Text>
+          </Pressable>
+
+          <Pressable style={styles.logoutButton} onPress={handleLogout}>
+            <LogOut color={colors.danger} size={18} />
+            <Text style={styles.logoutButtonText}>SAIR DA CONTA</Text>
           </Pressable>
         </GameCard>
 
@@ -161,9 +178,7 @@ function Achievement({
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   content: {
     padding: 20,
     paddingTop: 60,
@@ -224,6 +239,22 @@ const styles = StyleSheet.create({
   },
   editButtonText: {
     color: colors.text,
+    fontWeight: "900",
+    letterSpacing: 0.5,
+  },
+  logoutButton: {
+    marginTop: 10,
+    borderRadius: 16,
+    paddingVertical: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 8,
+    borderWidth: 1,
+    borderColor: "rgba(239,68,68,0.35)",
+  },
+  logoutButtonText: {
+    color: colors.danger,
     fontWeight: "900",
     letterSpacing: 0.5,
   },
