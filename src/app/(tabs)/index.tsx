@@ -8,6 +8,13 @@ import { useProgress } from "../../context/ProgressContext";
 import { aiAssistants, playerStats } from "../../data/dashboard";
 import { getXPByAction } from "../../services/fitnessCalculations";
 import { getHunterRank, getRankColor } from "../../services/rankSystem";
+import Animated, {
+  FadeInDown,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from "react-native-reanimated";
 
 export default function DashboardScreen() {
   const {
@@ -23,6 +30,13 @@ export default function DashboardScreen() {
 
   const hunterRank = getHunterRank(totalXP);
   const rankColor = getRankColor(hunterRank);
+  const glow = useSharedValue(0.4);
+
+glow.value = withRepeat(withTiming(1, { duration: 1200 }), -1, true);
+
+const glowStyle = useAnimatedStyle(() => ({
+  opacity: glow.value,
+}));
 
   if (isLoadingProgress) {
     return (
@@ -46,14 +60,18 @@ export default function DashboardScreen() {
           <Text style={styles.subtitle}>Sistema de evolução ativado</Text>
         </View>
 
-        <GameCard>
-          <View style={styles.xpHeader}>
-            <Text style={styles.xpLabel}>XP DO NÍVEL</Text>
-            <Text style={styles.xpValue}>{xpInsideLevel} / 500</Text>
-          </View>
+        <Animated.View entering={FadeInDown.duration(600)} style={styles.xpAnimatedWrapper}>
+  <Animated.View style={[styles.glow, glowStyle]} />
 
-          <ProgressBar progress={levelProgress} />
-        </GameCard>
+  <GameCard>
+    <View style={styles.xpHeader}>
+      <Text style={styles.xpLabel}>XP DO NÍVEL</Text>
+      <Text style={styles.xpValue}>{xpInsideLevel} / 500</Text>
+    </View>
+
+    <ProgressBar progress={levelProgress} />
+  </GameCard>
+</Animated.View>
 
         <View style={styles.grid}>
           {playerStats.map((stat) => {
@@ -230,4 +248,16 @@ const styles = StyleSheet.create({
     marginTop: 4,
     lineHeight: 20,
   },
+  xpAnimatedWrapper: {
+  position: "relative",
+},
+glow: {
+  position: "absolute",
+  top: -2,
+  left: -2,
+  right: -2,
+  bottom: -2,
+  borderRadius: 24,
+  backgroundColor: "rgba(0,229,255,0.22)",
+},
 });
