@@ -3,6 +3,7 @@ import { router, useFocusEffect } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { Camera, Trash2 } from "lucide-react-native";
 import { useCallback, useState } from "react";
+import { unlockAchievement } from "../services/achievementService";
 import {
   ActivityIndicator,
   Alert,
@@ -65,6 +66,11 @@ export default function ProgressPhotosScreen() {
       setIsUploading(true);
 
       await uploadProgressPhoto(result.assets[0].uri, note);
+      await unlockAchievement(
+        "first_progress_photo",
+        "Registro visual",
+        "Você adicionou sua primeira foto de evolução."
+      );
       setNote("");
       await loadPhotos();
     } catch (error) {
