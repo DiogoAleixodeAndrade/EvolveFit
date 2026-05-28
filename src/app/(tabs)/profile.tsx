@@ -1,6 +1,6 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useFocusEffect } from "expo-router";
-import { Award, Calendar, Flame, LineChart, LogOut, Pencil, Settings, Shield, Trophy, User, Zap } from "lucide-react-native";
+import { Award, Calendar, Flame, Image, LineChart, LogOut, Pencil, Settings, Shield, Trophy, User, Zap } from "lucide-react-native";
 import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { GameCard } from "../../components/GameCard";
 import { ProgressBar } from "../../components/ProgressBar";
@@ -129,6 +129,11 @@ const idealWeight = estimateIdealWeightRange(profile.heightCm);
 <Pressable style={styles.weightButton} onPress={() => router.push("/weight-history" as any)}>
   <LineChart color={colors.success} size={18} />
   <Text style={styles.weightButtonText}>HISTÓRICO DE PESO</Text>
+</Pressable>
+
+<Pressable style={styles.photoButton} onPress={() => router.push("/progress-photos" as any)}>
+  <Image color={colors.primary} size={18} />
+  <Text style={styles.photoButtonText}>FOTOS DE EVOLUÇÃO</Text>
 </Pressable>
 
           <Pressable style={styles.logoutButton} onPress={handleLogout}>
@@ -451,6 +456,22 @@ weightButton: {
 },
 weightButtonText: {
   color: colors.success,
+  fontWeight: "900",
+  letterSpacing: 0.5,
+},
+photoButton: {
+  marginTop: 10,
+  borderRadius: 16,
+  paddingVertical: 14,
+  alignItems: "center",
+  justifyContent: "center",
+  flexDirection: "row",
+  gap: 8,
+  borderWidth: 1,
+  borderColor: "rgba(108,92,231,0.35)",
+},
+photoButtonText: {
+  color: colors.primary,
   fontWeight: "900",
   letterSpacing: 0.5,
 },
