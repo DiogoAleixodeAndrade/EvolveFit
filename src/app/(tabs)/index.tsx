@@ -95,6 +95,14 @@ export default function DashboardScreen() {
         );
       }
 
+      if (summary.waterMl / 1000 >= goals.waterLitersGoal) {
+        await unlockAchievement(
+          "weekly_water_goal",
+          "Mestre da hidratação",
+          "Você bateu sua meta semanal de água."
+        );
+      }
+
       if (summary.runDistanceKm >= goals.distanceKmGoal) {
         await unlockAchievement(
           "weekly_distance_goal",
