@@ -1,6 +1,6 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useFocusEffect } from "expo-router";
-import { Award, Calendar, Flame, Image, LineChart, LogOut, Pencil, Settings, Shield, Trophy, User, Zap } from "lucide-react-native";
+import { Award, Calendar, Flame, Image, LineChart, LogOut, Pencil, Settings, Shield, Target, Trophy, User, Zap } from "lucide-react-native";
 import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { GameCard } from "../../components/GameCard";
 import { ProgressBar } from "../../components/ProgressBar";
@@ -23,19 +23,19 @@ import {
 export default function ProfileScreen() {
   const { profile, isLoadingProfile } = useUserProfile();
   const {
-  totalXP,
-  level,
-  levelProgress,
-  xpInsideLevel,
-  missions,
-  currentStreak,
-  bestStreak,
-  isLoadingProgress,
-} = useProgress();
+    totalXP,
+    level,
+    levelProgress,
+    xpInsideLevel,
+    missions,
+    currentStreak,
+    bestStreak,
+    isLoadingProgress,
+  } = useProgress();
 
-const bmi = calculateBMI(profile.weightKg, profile.heightCm);
-const bmiClassification = getBMIClassification(bmi);
-const idealWeight = estimateIdealWeightRange(profile.heightCm);
+  const bmi = calculateBMI(profile.weightKg, profile.heightCm);
+  const bmiClassification = getBMIClassification(bmi);
+  const idealWeight = estimateIdealWeightRange(profile.heightCm);
 
   const completedMissions = missions.filter((mission) => mission.completed).length;
   const hunterRank = getHunterRank(totalXP);
@@ -43,7 +43,7 @@ const idealWeight = estimateIdealWeightRange(profile.heightCm);
   const isLoading = isLoadingProfile || isLoadingProgress;
   const [achievements, setAchievements] = useState<AchievementType[]>([]);
   const [isLoadingAchievements, setIsLoadingAchievements] = useState(true);
-  
+
 
   async function handleLogout() {
     const { error } = await supabase.auth.signOut();
@@ -57,21 +57,21 @@ const idealWeight = estimateIdealWeightRange(profile.heightCm);
   }
 
   async function loadAchievements() {
-  try {
-    setIsLoadingAchievements(true);
-    const achievementsFromSupabase = await fetchAchievements();
-    setAchievements(achievementsFromSupabase);
-  } catch (error) {
-    console.log("Erro ao carregar conquistas:", error);
-  } finally {
-    setIsLoadingAchievements(false);
+    try {
+      setIsLoadingAchievements(true);
+      const achievementsFromSupabase = await fetchAchievements();
+      setAchievements(achievementsFromSupabase);
+    } catch (error) {
+      console.log("Erro ao carregar conquistas:", error);
+    } finally {
+      setIsLoadingAchievements(false);
+    }
   }
-}
   useFocusEffect(
-  useCallback(() => {
-    loadAchievements();
-  }, [])
-);
+    useCallback(() => {
+      loadAchievements();
+    }, [])
+  );
 
   if (isLoading) {
     return (
@@ -102,8 +102,8 @@ const idealWeight = estimateIdealWeightRange(profile.heightCm);
               <Text style={styles.name}>{profile.name}</Text>
               <Text style={styles.class}>Classe: Guerreiro em Evolução</Text>
               <Text style={[styles.rank, { color: rankColor }]}>
-  {hunterRank}-RANK · LEVEL {level}
-</Text>
+                {hunterRank}-RANK · LEVEL {level}
+              </Text>
             </View>
           </View>
 
@@ -122,19 +122,24 @@ const idealWeight = estimateIdealWeightRange(profile.heightCm);
           </Pressable>
 
           <Pressable style={styles.settingsButton} onPress={() => router.push("/settings" as any)}>
-  <Settings color={colors.secondary} size={18} />
-  <Text style={styles.settingsButtonText}>CONFIGURAÇÕES</Text>
-</Pressable>
+            <Settings color={colors.secondary} size={18} />
+            <Text style={styles.settingsButtonText}>CONFIGURAÇÕES</Text>
+          </Pressable>
 
-<Pressable style={styles.weightButton} onPress={() => router.push("/weight-history" as any)}>
-  <LineChart color={colors.success} size={18} />
-  <Text style={styles.weightButtonText}>HISTÓRICO DE PESO</Text>
-</Pressable>
+          <Pressable style={styles.weightButton} onPress={() => router.push("/weight-history" as any)}>
+            <LineChart color={colors.success} size={18} />
+            <Text style={styles.weightButtonText}>HISTÓRICO DE PESO</Text>
+          </Pressable>
 
-<Pressable style={styles.photoButton} onPress={() => router.push("/progress-photos" as any)}>
-  <Image color={colors.primary} size={18} />
-  <Text style={styles.photoButtonText}>FOTOS DE EVOLUÇÃO</Text>
-</Pressable>
+          <Pressable style={styles.photoButton} onPress={() => router.push("/progress-photos" as any)}>
+            <Image color={colors.primary} size={18} />
+            <Text style={styles.photoButtonText}>FOTOS DE EVOLUÇÃO</Text>
+          </Pressable>
+
+          <Pressable style={styles.goalsButton} onPress={() => router.push("/weekly-goals" as any)}>
+            <Target color={colors.warning} size={18} />
+            <Text style={styles.goalsButtonText}>METAS SEMANAIS</Text>
+          </Pressable>
 
           <Pressable style={styles.logoutButton} onPress={handleLogout}>
             <LogOut color={colors.danger} size={18} />
@@ -171,8 +176,8 @@ const idealWeight = estimateIdealWeightRange(profile.heightCm);
             <GameCard>
               <Shield color={colors.primary} size={24} />
               <Text style={[styles.statValue, { color: rankColor }]}>
-  {hunterRank}
-</Text>
+                {hunterRank}
+              </Text>
               <Text style={styles.statLabel}>Rank</Text>
             </GameCard>
           </View>
@@ -186,9 +191,9 @@ const idealWeight = estimateIdealWeightRange(profile.heightCm);
             <Text style={styles.infoText}>Altura: {profile.heightCm} cm</Text>
             <Text style={styles.infoText}>Peso: {profile.weightKg} kg</Text>
             <Text style={styles.infoText}>IMC: {bmi} — {bmiClassification}</Text>
-<Text style={styles.infoText}>
-  Peso ideal estimado: {idealWeight.min}kg a {idealWeight.max}kg
-</Text>
+            <Text style={styles.infoText}>
+              Peso ideal estimado: {idealWeight.min}kg a {idealWeight.max}kg
+            </Text>
             <Text style={styles.infoText}>Nível: {profile.trainingLevel}</Text>
             <Text style={styles.infoText}>Melhor streak: {bestStreak} dias</Text>
           </GameCard>
@@ -207,27 +212,27 @@ const idealWeight = estimateIdealWeightRange(profile.heightCm);
           <Text style={styles.sectionTitle}>Conquistas</Text>
 
           {isLoadingAchievements && (
-  <GameCard>
-    <ActivityIndicator color={colors.secondary} />
-    <Text style={styles.loadingText}>Carregando conquistas...</Text>
-  </GameCard>
-)}
+            <GameCard>
+              <ActivityIndicator color={colors.secondary} />
+              <Text style={styles.loadingText}>Carregando conquistas...</Text>
+            </GameCard>
+          )}
 
-{!isLoadingAchievements && achievements.length === 0 && (
-  <GameCard>
-    <Text style={styles.infoText}>Nenhuma conquista desbloqueada ainda.</Text>
-  </GameCard>
-)}
+          {!isLoadingAchievements && achievements.length === 0 && (
+            <GameCard>
+              <Text style={styles.infoText}>Nenhuma conquista desbloqueada ainda.</Text>
+            </GameCard>
+          )}
 
-{!isLoadingAchievements &&
-  achievements.map((achievement) => (
-    <Achievement
-      key={achievement.id}
-      icon={<Award color={colors.secondary} size={22} />}
-      title={achievement.title}
-      description={achievement.description}
-    />
-  ))}
+          {!isLoadingAchievements &&
+            achievements.map((achievement) => (
+              <Achievement
+                key={achievement.id}
+                icon={<Award color={colors.secondary} size={22} />}
+                title={achievement.title}
+                description={achievement.description}
+              />
+            ))}
         </View>
       </ScrollView>
     </LinearGradient>
@@ -283,14 +288,14 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   content: {
-  width: "100%",
-  maxWidth: Platform.OS === "web" ? 720 : "100%",
-  alignSelf: "center",
-  padding: 20,
-  paddingTop: 60,
-  paddingBottom: 40,
-  gap: 14,
-},
+    width: "100%",
+    maxWidth: Platform.OS === "web" ? 720 : "100%",
+    alignSelf: "center",
+    padding: 20,
+    paddingTop: 60,
+    paddingBottom: 40,
+    gap: 14,
+  },
   title: {
     color: colors.text,
     fontSize: 32,
@@ -428,51 +433,67 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   settingsButton: {
-  marginTop: 10,
-  borderRadius: 16,
-  paddingVertical: 14,
-  alignItems: "center",
-  justifyContent: "center",
-  flexDirection: "row",
-  gap: 8,
-  borderWidth: 1,
-  borderColor: "rgba(0,229,255,0.35)",
-},
-settingsButtonText: {
-  color: colors.secondary,
-  fontWeight: "900",
-  letterSpacing: 0.5,
-},
-weightButton: {
-  marginTop: 10,
-  borderRadius: 16,
-  paddingVertical: 14,
-  alignItems: "center",
-  justifyContent: "center",
-  flexDirection: "row",
-  gap: 8,
-  borderWidth: 1,
-  borderColor: "rgba(34,197,94,0.35)",
-},
-weightButtonText: {
-  color: colors.success,
-  fontWeight: "900",
-  letterSpacing: 0.5,
-},
-photoButton: {
-  marginTop: 10,
-  borderRadius: 16,
-  paddingVertical: 14,
-  alignItems: "center",
-  justifyContent: "center",
-  flexDirection: "row",
-  gap: 8,
-  borderWidth: 1,
-  borderColor: "rgba(108,92,231,0.35)",
-},
-photoButtonText: {
-  color: colors.primary,
-  fontWeight: "900",
-  letterSpacing: 0.5,
-},
+    marginTop: 10,
+    borderRadius: 16,
+    paddingVertical: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 8,
+    borderWidth: 1,
+    borderColor: "rgba(0,229,255,0.35)",
+  },
+  settingsButtonText: {
+    color: colors.secondary,
+    fontWeight: "900",
+    letterSpacing: 0.5,
+  },
+  weightButton: {
+    marginTop: 10,
+    borderRadius: 16,
+    paddingVertical: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 8,
+    borderWidth: 1,
+    borderColor: "rgba(34,197,94,0.35)",
+  },
+  weightButtonText: {
+    color: colors.success,
+    fontWeight: "900",
+    letterSpacing: 0.5,
+  },
+  photoButton: {
+    marginTop: 10,
+    borderRadius: 16,
+    paddingVertical: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 8,
+    borderWidth: 1,
+    borderColor: "rgba(108,92,231,0.35)",
+  },
+  photoButtonText: {
+    color: colors.primary,
+    fontWeight: "900",
+    letterSpacing: 0.5,
+  },
+  goalsButton: {
+    marginTop: 10,
+    borderRadius: 16,
+    paddingVertical: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 8,
+    borderWidth: 1,
+    borderColor: "rgba(245,158,11,0.35)",
+  },
+  goalsButtonText: {
+    color: colors.warning,
+    fontWeight: "900",
+    letterSpacing: 0.5,
+  },
 });
