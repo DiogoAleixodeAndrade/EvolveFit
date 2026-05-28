@@ -1,13 +1,15 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { GameCard } from "../../components/GameCard";
-import { MissionCard } from "../../components/MissionCard";
-import { ProgressBar } from "../../components/ProgressBar";
-import { colors } from "../../constants/theme";
-import { useProgress } from "../../context/ProgressContext";
-import { aiAssistants, playerStats } from "../../data/dashboard";
-import { getXPByAction } from "../../services/fitnessCalculations";
-import { getHunterRank, getRankColor } from "../../services/rankSystem";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import Animated, {
   FadeInDown,
   FadeInRight,
@@ -16,28 +18,64 @@ import Animated, {
   withRepeat,
   withTiming,
 } from "react-native-reanimated";
+import { GameCard } from "../../components/GameCard";
+import { MissionCard } from "../../components/MissionCard";
+import { ProgressBar } from "../../components/ProgressBar";
+import { colors } from "../../constants/theme";
+import { useProgress } from "../../context/ProgressContext";
+import { aiAssistants, playerStats } from "../../data/dashboard";
+import { getXPByAction } from "../../services/fitnessCalculations";
+import { getHunterRank, getRankColor } from "../../services/rankSystem";
+import {
+  fetchWeeklySummary,
+  WeeklySummary,
+} from "../../services/weeklySummaryService";
 
 export default function DashboardScreen() {
   const {
-  missions,
-  totalXP,
-  level,
-  levelProgress,
-  xpInsideLevel,
-  currentStreak,
-  isLoadingProgress,
-  completeMission,
-} = useProgress();
+    missions,
+    totalXP,
+    level,
+    levelProgress,
+    xpInsideLevel,
+    currentStreak,
+    isLoadingProgress,
+    completeMission,
+  } = useProgress();
+
+  const [weeklySummary, setWeeklySummary] = useState<WeeklySummary | null>(null);
+  const [isLoadingWeeklySummary, setIsLoadingWeeklySummary] = useState(true);
 
   const hunterRank = getHunterRank(totalXP);
   const rankColor = getRankColor(hunterRank);
+
   const glow = useSharedValue(0.4);
 
-glow.value = withRepeat(withTiming(1, { duration: 1200 }), -1, true);
+  const glowStyle = useAnimatedStyle(() => ({
+    opacity: glow.value,
+  }));
 
-const glowStyle = useAnimatedStyle(() => ({
-  opacity: glow.value,
-}));
+  async function loadWeeklySummary() {
+    try {
+      setIsLoadingWeeklySummary(true);
+      const summary = await fetchWeeklySummary();
+      setWeeklySummary(summary);
+    } catch (error) {
+      console.log("Erro ao carregar resumo semanal:", error);
+    } finally {
+      setIsLoadingWeeklySummary(false);
+    }
+  }
+
+  useEffect(() => {
+    glow.value = withRepeat(withTiming(1, { duration: 1200 }), -1, true);
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadWeeklySummary();
+    }, [])
+  );
 
   if (isLoadingProgress) {
     return (
@@ -55,91 +93,123 @@ const glowStyle = useAnimatedStyle(() => ({
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
           <Text style={styles.welcome}>Bem-vindo, Caçador</Text>
+
           <Text style={[styles.title, { color: rankColor }]}>
-  {hunterRank}-RANK · LEVEL {level}
-</Text>
+            {hunterRank}-RANK · LEVEL {level}
+          </Text>
+
           <Text style={styles.subtitle}>Sistema de evolução ativado</Text>
         </View>
 
         <Animated.View entering={FadeInDown.duration(600)} style={styles.xpAnimatedWrapper}>
-  <Animated.View style={[styles.glow, glowStyle]} />
+          <Animated.View style={[styles.glow, glowStyle]} />
 
-  <GameCard>
-    <View style={styles.xpHeader}>
-      <Text style={styles.xpLabel}>XP DO NÍVEL</Text>
-      <Text style={styles.xpValue}>{xpInsideLevel} / 500</Text>
-    </View>
+          <GameCard>
+            <View style={styles.xpHeader}>
+              <Text style={styles.xpLabel}>XP DO NÍVEL</Text>
+              <Text style={styles.xpValue}>{xpInsideLevel} / 500</Text>
+            </View>
 
-    <ProgressBar progress={levelProgress} />
-  </GameCard>
-</Animated.View>
-<Animated.View entering={FadeInDown.delay(180).duration(600)}>
-  <GameCard>
-    <View style={styles.rankSystemCard}>
-      <Text style={styles.rankSystemLabel}>RANK DO CAÇADOR</Text>
+            <ProgressBar progress={levelProgress} />
+          </GameCard>
+        </Animated.View>
 
-      <Text style={[styles.rankSystemValue, { color: rankColor }]}>
-        {hunterRank}-RANK
-      </Text>
+        <Animated.View entering={FadeInDown.delay(180).duration(600)}>
+          <GameCard>
+            <View style={styles.rankSystemCard}>
+              <Text style={styles.rankSystemLabel}>RANK DO CAÇADOR</Text>
 
-      <Text style={styles.rankSystemText}>
-        Continue completando missões para evoluir seu rank e desbloquear conquistas.
-      </Text>
-    </View>
-  </GameCard>
-</Animated.View>
+              <Text style={[styles.rankSystemValue, { color: rankColor }]}>
+                {hunterRank}-RANK
+              </Text>
+
+              <Text style={styles.rankSystemText}>
+                Continue completando missões para evoluir seu rank e desbloquear conquistas.
+              </Text>
+            </View>
+          </GameCard>
+        </Animated.View>
+
+        <GameCard>
+          <Text style={styles.sectionTitle}>Resumo semanal</Text>
+
+          {isLoadingWeeklySummary && (
+            <Text style={styles.assistantDescription}>Carregando resumo...</Text>
+          )}
+
+          {!isLoadingWeeklySummary && weeklySummary && (
+            <View style={styles.weeklyGrid}>
+              <Text style={styles.weeklyItem}>🍽️ Refeições: {weeklySummary.mealsCount}</Text>
+              <Text style={styles.weeklyItem}>
+                💧 Água: {(weeklySummary.waterMl / 1000).toFixed(1)}L
+              </Text>
+              <Text style={styles.weeklyItem}>🏋️ Treinos: {weeklySummary.workoutsCount}</Text>
+              <Text style={styles.weeklyItem}>🏃 Corridas: {weeklySummary.runsCount}</Text>
+              <Text style={styles.weeklyItem}>
+                📍 Km: {weeklySummary.runDistanceKm.toFixed(1)}
+              </Text>
+              <Text style={styles.weeklyItem}>
+                ⚖️ Peso:{" "}
+                {weeklySummary.latestWeightKg
+                  ? `${weeklySummary.latestWeightKg}kg`
+                  : "Sem registro"}
+              </Text>
+            </View>
+          )}
+        </GameCard>
 
         <View style={styles.grid}>
-  {playerStats.map((stat, index) => {
-    const Icon = stat.icon;
-    const value =
-      stat.id === "xp"
-        ? String(totalXP)
-        : stat.id === "level"
-          ? String(level)
-          : stat.id === "missions"
-            ? String(missions.filter((mission) => mission.completed).length)
-            : stat.id === "streak"
-              ? String(currentStreak)
-              : stat.id === "rank"
-                ? hunterRank
-                : stat.value;
+          {playerStats.map((stat, index) => {
+            const Icon = stat.icon;
 
-    return (
-      <Animated.View
-        key={stat.id}
-        entering={FadeInRight.delay(index * 120).duration(500)}
-        style={styles.gridItem}
-      >
-        <GameCard>
-          <Icon color={stat.iconColor} size={24} />
-          <Text style={styles.statValue}>{value}</Text>
-          <Text style={styles.statLabel}>{stat.label}</Text>
-        </GameCard>
-      </Animated.View>
-    );
-  })}
-</View>
+            const value =
+              stat.id === "xp"
+                ? String(totalXP)
+                : stat.id === "level"
+                  ? String(level)
+                  : stat.id === "missions"
+                    ? String(missions.filter((mission) => mission.completed).length)
+                    : stat.id === "streak"
+                      ? String(currentStreak)
+                      : stat.id === "rank"
+                        ? hunterRank
+                        : stat.value;
+
+            return (
+              <Animated.View
+                key={stat.id}
+                entering={FadeInRight.delay(index * 120).duration(500)}
+                style={styles.gridItem}
+              >
+                <GameCard>
+                  <Icon color={stat.iconColor} size={24} />
+                  <Text style={styles.statValue}>{value}</Text>
+                  <Text style={styles.statLabel}>{stat.label}</Text>
+                </GameCard>
+              </Animated.View>
+            );
+          })}
+        </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Missões diárias</Text>
 
           {missions.map((mission, index) => (
             <Animated.View
-  key={mission.id}
-  entering={FadeInDown.delay(index * 100).duration(500)}
->
-  <Pressable onPress={() => completeMission(mission.id)}>
-              <MissionCard
-                icon={
-                  <Text style={[styles.missionIcon, mission.completed && styles.missionIconDone]}>
-                    {mission.completed ? "✓" : "○"}
-                  </Text>
-                }
-                title={mission.completed ? `${mission.title} concluída` : mission.title}
-                xp={`+${getXPByAction(mission.xpAction)} XP`}
-              />
-            </Pressable>
+              key={mission.id}
+              entering={FadeInDown.delay(index * 100).duration(500)}
+            >
+              <Pressable onPress={() => completeMission(mission.id)}>
+                <MissionCard
+                  icon={
+                    <Text style={[styles.missionIcon, mission.completed && styles.missionIconDone]}>
+                      {mission.completed ? "✓" : "○"}
+                    </Text>
+                  }
+                  title={mission.completed ? `${mission.title} concluída` : mission.title}
+                  xp={`+${getXPByAction(mission.xpAction)} XP`}
+                />
+              </Pressable>
             </Animated.View>
           ))}
         </View>
@@ -184,14 +254,14 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   content: {
-  width: "100%",
-  maxWidth: Platform.OS === "web" ? 720 : "100%",
-  alignSelf: "center",
-  padding: 20,
-  paddingTop: 60,
-  paddingBottom: 40,
-  gap: 14,
-},
+    width: "100%",
+    maxWidth: Platform.OS === "web" ? 720 : "100%",
+    alignSelf: "center",
+    padding: 20,
+    paddingTop: 60,
+    paddingBottom: 40,
+    gap: 14,
+  },
   header: {
     marginBottom: 8,
   },
@@ -200,7 +270,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   title: {
-    color: colors.text,
     fontSize: 32,
     fontWeight: "900",
     marginTop: 6,
@@ -211,6 +280,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 6,
     fontWeight: "700",
+  },
+  xpAnimatedWrapper: {
+    position: "relative",
+  },
+  glow: {
+    position: "absolute",
+    top: -2,
+    left: -2,
+    right: -2,
+    bottom: -2,
+    borderRadius: 24,
+    backgroundColor: "rgba(0,229,255,0.22)",
   },
   xpHeader: {
     flexDirection: "row",
@@ -225,6 +306,35 @@ const styles = StyleSheet.create({
   xpValue: {
     color: colors.text,
     fontWeight: "900",
+  },
+  rankSystemCard: {
+    alignItems: "center",
+    paddingVertical: 10,
+  },
+  rankSystemLabel: {
+    color: colors.secondary,
+    fontSize: 12,
+    fontWeight: "900",
+    letterSpacing: 2,
+  },
+  rankSystemValue: {
+    fontSize: 42,
+    fontWeight: "900",
+    marginTop: 8,
+  },
+  rankSystemText: {
+    color: colors.textMuted,
+    textAlign: "center",
+    marginTop: 8,
+    lineHeight: 20,
+  },
+  weeklyGrid: {
+    marginTop: 12,
+    gap: 8,
+  },
+  weeklyItem: {
+    color: colors.textMuted,
+    fontWeight: "800",
   },
   grid: {
     flexDirection: "row",
@@ -276,37 +386,4 @@ const styles = StyleSheet.create({
     marginTop: 4,
     lineHeight: 20,
   },
-  xpAnimatedWrapper: {
-  position: "relative",
-},
-glow: {
-  position: "absolute",
-  top: -2,
-  left: -2,
-  right: -2,
-  bottom: -2,
-  borderRadius: 24,
-  backgroundColor: "rgba(0,229,255,0.22)",
-},
-rankSystemCard: {
-  alignItems: "center",
-  paddingVertical: 10,
-},
-rankSystemLabel: {
-  color: colors.secondary,
-  fontSize: 12,
-  fontWeight: "900",
-  letterSpacing: 2,
-},
-rankSystemValue: {
-  fontSize: 42,
-  fontWeight: "900",
-  marginTop: 8,
-},
-rankSystemText: {
-  color: colors.textMuted,
-  textAlign: "center",
-  marginTop: 8,
-  lineHeight: 20,
-},
 });
