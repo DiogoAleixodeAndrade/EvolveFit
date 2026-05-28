@@ -1,5 +1,5 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { GameCard } from "../../components/GameCard";
 import { MissionCard } from "../../components/MissionCard";
 import { ProgressBar } from "../../components/ProgressBar";
@@ -184,11 +184,14 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   content: {
-    padding: 20,
-    paddingTop: 60,
-    paddingBottom: 40,
-    gap: 14,
-  },
+  width: "100%",
+  maxWidth: Platform.OS === "web" ? 720 : "100%",
+  alignSelf: "center",
+  padding: 20,
+  paddingTop: 60,
+  paddingBottom: 40,
+  gap: 14,
+},
   header: {
     marginBottom: 8,
   },

@@ -136,10 +136,13 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: {
-    flexGrow: 1,
-    padding: 20,
-    justifyContent: "center",
-  },
+  flexGrow: 1,
+  width: "100%",
+  maxWidth: Platform.OS === "web" ? 460 : "100%",
+  alignSelf: "center",
+  padding: 20,
+  justifyContent: "center",
+},
   logo: {
     color: colors.secondary,
     fontSize: 18,

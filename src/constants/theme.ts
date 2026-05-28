@@ -11,10 +11,18 @@ export const colors = {
   danger: "#EF4444",
 };
 
-export const spacing = {
-  xs: 4,
-  sm: 8,
-  md: 16,
-  lg: 24,
-  xl: 32,
+export const Spacing = {
+  half: 4,
+  one: 8,
+  two: 12,
+  three: 16,
+  four: 20,
+  five: 24,
+  six: 32,
 };
+
+export const Fonts = {
+  mono: "monospace",
+};
+
+export type ThemeColor = keyof typeof colors;

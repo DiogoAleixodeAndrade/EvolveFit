@@ -2,7 +2,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { Activity, Flame, Shield, Swords } from "lucide-react-native";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Platform, Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
 import { colors } from "../constants/theme";
 import { supabase } from "../services/supabase";
 
@@ -90,8 +90,9 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-  },
+  flex: 1,
+  alignItems: Platform.OS === "web" ? "center" : "stretch",
+},
   loadingContainer: {
     flex: 1,
     alignItems: "center",
@@ -103,10 +104,13 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   safe: {
-    flex: 1,
-    padding: 20,
-    justifyContent: "space-between",
-  },
+  flex: 1,
+  width: "100%",
+  maxWidth: Platform.OS === "web" ? 520 : "100%",
+  alignSelf: "center",
+  padding: 20,
+  justifyContent: "space-between",
+},
   header: {
     marginTop: 24,
   },

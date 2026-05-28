@@ -1,7 +1,7 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useFocusEffect } from "expo-router";
 import { Award, Calendar, Flame, LogOut, Pencil, Settings, Shield, Trophy, User, Zap } from "lucide-react-native";
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { GameCard } from "../../components/GameCard";
 import { ProgressBar } from "../../components/ProgressBar";
 import { colors } from "../../constants/theme";
@@ -260,11 +260,14 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   content: {
-    padding: 20,
-    paddingTop: 60,
-    paddingBottom: 40,
-    gap: 16,
-  },
+  width: "100%",
+  maxWidth: Platform.OS === "web" ? 720 : "100%",
+  alignSelf: "center",
+  padding: 20,
+  paddingTop: 60,
+  paddingBottom: 40,
+  gap: 14,
+},
   title: {
     color: colors.text,
     fontSize: 32,
