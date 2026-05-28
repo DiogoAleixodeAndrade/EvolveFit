@@ -64,12 +64,12 @@ export default function DashboardScreen() {
     try {
       setIsLoadingWeeklySummary(true);
       const [summary, goals] = await Promise.all([
-  fetchWeeklySummary(),
-  fetchWeeklyGoals(),
-]);
+        fetchWeeklySummary(),
+        fetchWeeklyGoals(),
+      ]);
 
-setWeeklySummary(summary);
-setWeeklyGoals(goals);
+      setWeeklySummary(summary);
+      setWeeklyGoals(goals);
     } catch (error) {
       console.log("Erro ao carregar resumo semanal:", error);
     } finally {
@@ -169,30 +169,42 @@ setWeeklyGoals(goals);
         </GameCard>
 
         {weeklySummary && weeklyGoals && (
-  <GameCard>
-    <Text style={styles.sectionTitle}>Metas semanais</Text>
+          <GameCard>
+            <Text style={styles.sectionTitle}>Metas semanais</Text>
 
-    <Text style={styles.weeklyItem}>
-      🍽️ Refeições: {weeklySummary.mealsCount}/{weeklyGoals.mealsGoal}
-    </Text>
+            <WeeklyGoalProgress
+              label="🍽️ Refeições"
+              current={weeklySummary.mealsCount}
+              goal={weeklyGoals.mealsGoal}
+            />
 
-    <Text style={styles.weeklyItem}>
-      💧 Água: {(weeklySummary.waterMl / 1000).toFixed(1)}/{weeklyGoals.waterLitersGoal}L
-    </Text>
+            <WeeklyGoalProgress
+              label="💧 Água"
+              current={Number((weeklySummary.waterMl / 1000).toFixed(1))}
+              goal={weeklyGoals.waterLitersGoal}
+              suffix="L"
+            />
 
-    <Text style={styles.weeklyItem}>
-      🏋️ Treinos: {weeklySummary.workoutsCount}/{weeklyGoals.workoutsGoal}
-    </Text>
+            <WeeklyGoalProgress
+              label="🏋️ Treinos"
+              current={weeklySummary.workoutsCount}
+              goal={weeklyGoals.workoutsGoal}
+            />
 
-    <Text style={styles.weeklyItem}>
-      🏃 Corridas: {weeklySummary.runsCount}/{weeklyGoals.runsGoal}
-    </Text>
+            <WeeklyGoalProgress
+              label="🏃 Corridas"
+              current={weeklySummary.runsCount}
+              goal={weeklyGoals.runsGoal}
+            />
 
-    <Text style={styles.weeklyItem}>
-      📍 Km: {weeklySummary.runDistanceKm.toFixed(1)}/{weeklyGoals.distanceKmGoal}
-    </Text>
-  </GameCard>
-)}
+            <WeeklyGoalProgress
+              label="📍 Km"
+              current={Number(weeklySummary.runDistanceKm.toFixed(1))}
+              goal={weeklyGoals.distanceKmGoal}
+              suffix="km"
+            />
+          </GameCard>
+        )}
 
         <View style={styles.grid}>
           {playerStats.map((stat, index) => {
@@ -272,6 +284,34 @@ setWeeklyGoals(goals);
         </View>
       </ScrollView>
     </LinearGradient>
+  );
+}
+
+function WeeklyGoalProgress({
+  label,
+  current,
+  goal,
+  suffix = "",
+}: {
+  label: string;
+  current: number;
+  goal: number;
+  suffix?: string;
+}) {
+  const progress = goal > 0 ? Math.min((current / goal) * 100, 100) : 0;
+
+  return (
+    <View style={styles.weeklyGoalBox}>
+      <View style={styles.weeklyGoalHeader}>
+        <Text style={styles.weeklyItem}>{label}</Text>
+        <Text style={styles.weeklyItem}>
+          {current}/{goal}
+          {suffix}
+        </Text>
+      </View>
+
+      <ProgressBar progress={progress} />
+    </View>
   );
 }
 
@@ -421,5 +461,15 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     marginTop: 4,
     lineHeight: 20,
+  },
+  weeklyGoalBox: {
+    marginTop: 12,
+    gap: 8,
+  },
+  weeklyGoalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 12,
   },
 });
