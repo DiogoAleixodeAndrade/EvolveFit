@@ -263,8 +263,8 @@ function Achievement({
 }) {
   return (
     <GameCard>
-      <View style={styles.achievement}>
-        {icon}
+      <View style={styles.badgeAchievement}>
+        <View style={styles.badgeIcon}>{icon}</View>
 
         <View style={{ flex: 1 }}>
           <Text style={styles.achievementTitle}>{title}</Text>
@@ -495,5 +495,20 @@ const styles = StyleSheet.create({
     color: colors.warning,
     fontWeight: "900",
     letterSpacing: 0.5,
+  },
+  badgeAchievement: {
+    flexDirection: "row",
+    gap: 14,
+    alignItems: "center",
+  },
+  badgeIcon: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0,229,255,0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(0,229,255,0.35)",
   },
 });
