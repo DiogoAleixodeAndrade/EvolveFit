@@ -2,6 +2,10 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
+  fetchWeeklyGoals,
+  WeeklyGoals,
+} from "../../services/weeklyGoalService";
+import {
   ActivityIndicator,
   Platform,
   Pressable,
@@ -45,6 +49,7 @@ export default function DashboardScreen() {
 
   const [weeklySummary, setWeeklySummary] = useState<WeeklySummary | null>(null);
   const [isLoadingWeeklySummary, setIsLoadingWeeklySummary] = useState(true);
+  const [weeklyGoals, setWeeklyGoals] = useState<WeeklyGoals | null>(null);
 
   const hunterRank = getHunterRank(totalXP);
   const rankColor = getRankColor(hunterRank);
@@ -58,8 +63,13 @@ export default function DashboardScreen() {
   async function loadWeeklySummary() {
     try {
       setIsLoadingWeeklySummary(true);
-      const summary = await fetchWeeklySummary();
-      setWeeklySummary(summary);
+      const [summary, goals] = await Promise.all([
+  fetchWeeklySummary(),
+  fetchWeeklyGoals(),
+]);
+
+setWeeklySummary(summary);
+setWeeklyGoals(goals);
     } catch (error) {
       console.log("Erro ao carregar resumo semanal:", error);
     } finally {
@@ -157,6 +167,32 @@ export default function DashboardScreen() {
             </View>
           )}
         </GameCard>
+
+        {weeklySummary && weeklyGoals && (
+  <GameCard>
+    <Text style={styles.sectionTitle}>Metas semanais</Text>
+
+    <Text style={styles.weeklyItem}>
+      🍽️ Refeições: {weeklySummary.mealsCount}/{weeklyGoals.mealsGoal}
+    </Text>
+
+    <Text style={styles.weeklyItem}>
+      💧 Água: {(weeklySummary.waterMl / 1000).toFixed(1)}/{weeklyGoals.waterLitersGoal}L
+    </Text>
+
+    <Text style={styles.weeklyItem}>
+      🏋️ Treinos: {weeklySummary.workoutsCount}/{weeklyGoals.workoutsGoal}
+    </Text>
+
+    <Text style={styles.weeklyItem}>
+      🏃 Corridas: {weeklySummary.runsCount}/{weeklyGoals.runsGoal}
+    </Text>
+
+    <Text style={styles.weeklyItem}>
+      📍 Km: {weeklySummary.runDistanceKm.toFixed(1)}/{weeklyGoals.distanceKmGoal}
+    </Text>
+  </GameCard>
+)}
 
         <View style={styles.grid}>
           {playerStats.map((stat, index) => {
