@@ -5,6 +5,7 @@ import { scheduleDailyReminders } from "../../services/notificationService";
 import {
   ActivityIndicator,
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -12,6 +13,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  View,
 } from "react-native";
 import { colors } from "../../constants/theme";
 import { signInWithGoogle } from "../../services/socialAuth";
@@ -75,7 +77,11 @@ export default function RegisterScreen() {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView contentContainerStyle={styles.content}>
-          <Text style={styles.logo}>EVOLVEFIT</Text>
+          <Image
+            source={require("../../../assets/images/evolvefit-logo.png")}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
           <Text style={styles.title}>Criar Conta</Text>
           <Text style={styles.subtitle}>Comece sua jornada de evolução.</Text>
 
@@ -135,13 +141,13 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: {
-  flexGrow: 1,
-  width: "100%",
-  maxWidth: Platform.OS === "web" ? 460 : "100%",
-  alignSelf: "center",
-  padding: 20,
-  justifyContent: "center",
-},
+    flexGrow: 1,
+    width: "100%",
+    maxWidth: Platform.OS === "web" ? 460 : "100%",
+    alignSelf: "center",
+    padding: 20,
+    justifyContent: "center",
+  },
   logo: {
     color: colors.secondary,
     fontSize: 18,
@@ -214,4 +220,10 @@ const styles = StyleSheet.create({
     marginTop: 22,
     fontWeight: "800",
   },
+  logoImage: {
+  width: 220,
+  height: 140,
+  alignSelf: "center",
+  marginBottom: 16,
+},
 });
