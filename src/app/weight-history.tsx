@@ -2,6 +2,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router, useFocusEffect } from "expo-router";
 import { Trash2 } from "lucide-react-native";
 import { useCallback, useState } from "react";
+import { Dimensions } from "react-native";
+import { LineChart } from "react-native-chart-kit";
 import {
   ActivityIndicator,
   Alert,
@@ -77,6 +79,25 @@ export default function WeightHistoryScreen() {
     }, [])
   );
 
+  const screenWidth = Dimensions.get("window").width;
+
+const chartData = {
+  labels: logs.map((item) =>
+    new Date(item.logDate).toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+    })
+  ),
+  datasets: [
+    {
+      data:
+        logs.length > 0
+          ? logs.map((item) => item.weightKg)
+          : [0],
+    },
+  ],
+};
+
   return (
     <LinearGradient colors={["#050816", "#0B1026", "#111C44"]} style={styles.container}>
       <KeyboardAvoidingView
@@ -111,6 +132,35 @@ export default function WeightHistoryScreen() {
               )}
             </Pressable>
           </GameCard>
+
+          {logs.length > 1 && (
+  <GameCard>
+    <Text style={styles.sectionTitle}>
+      Evolução do Peso
+    </Text>
+
+    <LineChart
+      data={chartData}
+      width={Math.min(screenWidth - 40, 680)}
+      height={220}
+      yAxisSuffix="kg"
+      chartConfig={{
+        backgroundGradientFrom: "#0B1026",
+        backgroundGradientTo: "#0B1026",
+        decimalPlaces: 1,
+        color: (opacity = 1) =>
+          `rgba(0, 229, 255, ${opacity})`,
+        labelColor: (opacity = 1) =>
+          `rgba(255,255,255,${opacity})`,
+      }}
+      bezier
+      style={{
+        marginTop: 12,
+        borderRadius: 16,
+      }}
+    />
+  </GameCard>
+)}
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Registros</Text>

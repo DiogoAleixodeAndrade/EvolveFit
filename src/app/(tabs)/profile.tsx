@@ -14,6 +14,11 @@ import {
   Achievement as AchievementType,
   fetchAchievements,
 } from "../../services/achievementService";
+import {
+  calculateBMI,
+  estimateIdealWeightRange,
+  getBMIClassification,
+} from "../../services/bodyMetrics";
 
 export default function ProfileScreen() {
   const { profile, isLoadingProfile } = useUserProfile();
@@ -27,6 +32,10 @@ export default function ProfileScreen() {
   bestStreak,
   isLoadingProgress,
 } = useProgress();
+
+const bmi = calculateBMI(profile.weightKg, profile.heightCm);
+const bmiClassification = getBMIClassification(bmi);
+const idealWeight = estimateIdealWeightRange(profile.heightCm);
 
   const completedMissions = missions.filter((mission) => mission.completed).length;
   const hunterRank = getHunterRank(totalXP);
@@ -171,6 +180,10 @@ export default function ProfileScreen() {
             <Text style={styles.infoText}>Idade: {profile.age} anos</Text>
             <Text style={styles.infoText}>Altura: {profile.heightCm} cm</Text>
             <Text style={styles.infoText}>Peso: {profile.weightKg} kg</Text>
+            <Text style={styles.infoText}>IMC: {bmi} — {bmiClassification}</Text>
+<Text style={styles.infoText}>
+  Peso ideal estimado: {idealWeight.min}kg a {idealWeight.max}kg
+</Text>
             <Text style={styles.infoText}>Nível: {profile.trainingLevel}</Text>
             <Text style={styles.infoText}>Melhor streak: {bestStreak} dias</Text>
           </GameCard>
