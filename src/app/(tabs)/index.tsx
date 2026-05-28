@@ -2,10 +2,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
-  fetchWeeklyGoals,
-  WeeklyGoals,
-} from "../../services/weeklyGoalService";
-import {
   ActivityIndicator,
   Platform,
   Pressable,
@@ -29,7 +25,12 @@ import { colors } from "../../constants/theme";
 import { useProgress } from "../../context/ProgressContext";
 import { aiAssistants, playerStats } from "../../data/dashboard";
 import { getXPByAction } from "../../services/fitnessCalculations";
+import { unlockAchievement } from "../../services/achievementService";
 import { getHunterRank, getRankColor } from "../../services/rankSystem";
+import {
+  fetchWeeklyGoals,
+  WeeklyGoals,
+} from "../../services/weeklyGoalService";
 import {
   fetchWeeklySummary,
   WeeklySummary,
@@ -70,6 +71,37 @@ export default function DashboardScreen() {
 
       setWeeklySummary(summary);
       setWeeklyGoals(goals);
+      if (summary.mealsCount >= goals.mealsGoal) {
+        await unlockAchievement(
+          "weekly_meals_goal",
+          "Mestre das refeições",
+          "Você bateu sua meta semanal de refeições."
+        );
+      }
+
+      if (summary.workoutsCount >= goals.workoutsGoal) {
+        await unlockAchievement(
+          "weekly_workouts_goal",
+          "Guerreiro da semana",
+          "Você bateu sua meta semanal de treinos."
+        );
+      }
+
+      if (summary.runsCount >= goals.runsGoal) {
+        await unlockAchievement(
+          "weekly_runs_goal",
+          "Corredor disciplinado",
+          "Você bateu sua meta semanal de corridas."
+        );
+      }
+
+      if (summary.runDistanceKm >= goals.distanceKmGoal) {
+        await unlockAchievement(
+          "weekly_distance_goal",
+          "Caçador de quilômetros",
+          "Você bateu sua meta semanal de distância."
+        );
+      }
     } catch (error) {
       console.log("Erro ao carregar resumo semanal:", error);
     } finally {
