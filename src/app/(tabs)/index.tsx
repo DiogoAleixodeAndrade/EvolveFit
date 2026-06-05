@@ -1,6 +1,7 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
+import { AppLoadingScreen } from "../../components/AppLoadingScreen";
 import {
   ActivityIndicator,
   Platform,
@@ -128,16 +129,8 @@ export default function DashboardScreen() {
   );
 
   if (isLoadingProgress) {
-    return (
-      <LinearGradient colors={["#050816", "#0B1026", "#111C44"]} style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator color={colors.secondary} size="large" />
-          <Text style={styles.loadingText}>Carregando sistema...</Text>
-        </View>
-      </LinearGradient>
-    );
+    return <AppLoadingScreen />;
   }
-
   return (
     <LinearGradient colors={["#050816", "#0B1026", "#111C44"]} style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
