@@ -3,6 +3,7 @@ import { router, useFocusEffect } from "expo-router";
 import { Award, Calendar, Flame, Image, LineChart, LogOut, Pencil, Settings, Shield, Target, Trophy, User, Zap } from "lucide-react-native";
 import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { GameCard } from "../../components/GameCard";
+import { AppLoadingScreen } from "../../components/AppLoadingScreen";
 import { ProgressBar } from "../../components/ProgressBar";
 import { colors } from "../../constants/theme";
 import { useProgress } from "../../context/ProgressContext";
@@ -74,14 +75,7 @@ export default function ProfileScreen() {
   );
 
   if (isLoading) {
-    return (
-      <LinearGradient colors={["#050816", "#0B1026", "#111C44"]} style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator color={colors.secondary} size="large" />
-          <Text style={styles.loadingText}>Carregando perfil...</Text>
-        </View>
-      </LinearGradient>
-    );
+    return <AppLoadingScreen />;
   }
 
   return (
